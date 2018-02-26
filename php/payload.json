@@ -1,0 +1,7 @@
+{
+    "exp": 1519594405,
+    "iss": "B22442B959EA26570A495EC7@AdobeOrg",
+    "sub": "91273E0D59FA3B210A495D56@techacct.adobe.com",
+    "aud": "https://ims-na1.adobelogin.com/c/b4e3ee08719247cc85e9ba92970b1028",
+    "https://ims-na1.adobelogin.com/s/ent_stocksearch_sdk": true
+}

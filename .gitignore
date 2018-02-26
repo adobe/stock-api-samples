@@ -1,0 +1,6 @@
+composer.phar
+php/vendor/
+**/php/libs/fotolia/
+*.zip
+*.key
+*.crt
