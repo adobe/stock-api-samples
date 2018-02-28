@@ -1,7 +1,15 @@
 #!/usr/bin/env php
 <?php
-error_reporting(-1); # show all errors
+/**
+ * Copyright 2017 Adobe Systems Incorporated. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ */
 
+namespace SdkDemo;
+
+error_reporting(-1); # show all errors
 require __DIR__ . '/../vendor/autoload.php'; # composer class loader
 
 # Stock API includes for search
@@ -55,6 +63,7 @@ $response_total = $response->getNbResults();
 printf("Found %d results\n", $response_total);
 echo "Displaying first 10 results\n";
 
+# utility function to parse results
 function displayResults($response_files)
 {
     for ($idx = 0; $idx < count($response_files); $idx++) {
@@ -69,9 +78,22 @@ function displayResults($response_files)
 # get files array from search and iterate over results
 displayResults($response->getFiles());
 
+# display next page of results
 if ($response_total > 10) {
     echo "\nDisplaying next 10 results.\n";
     # getting second page of results
     $response = $adobe_stock_client->searchFilesInitialize($request, '')->getResponsePage(1);
     displayResults($response->getFiles());
 }
+
+# to get all pages, divide total results / number per page, then loop over page numbers starting with 0
+# each page can have a limit up to 64 items per page
+# Example
+/*
+    $response_total = $response->getNbResults();
+    $num_pages = ceil($response_total) / 32; // 32 is the default number of items per page
+    for ($idx = 0; $idx < $num_pages; $idx++) {
+        $response = $adobe_stock_client->searchFilesInitialize($request, '')->getResponsePage($idx);
+        displayResults($response->getFiles());
+    }
+*/

@@ -4,3 +4,5 @@ php/vendor/
 *.zip
 *.key
 *.crt
+php/src/Config/AppConfig-cfs.php
+*.jpeg
