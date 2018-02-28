@@ -208,17 +208,38 @@ $lh_result_cols_array = [
     $lh_result_cols['THUMBNAIL_240_URL'],
 ];
 
-$lh_request = new LicenseHistoryRequest();
-$lh_request->setLocale('en_US');
-$lh_request->setSearchParams($lh_params);
-$lh_request->setResultColumns($lh_result_cols_array);
-$adobe_stock_client = new AdobeStock($api_key, $app_name, 'PROD', $http_client);
-$lh_response = $adobe_stock_client->initializeLicenseHistory($lh_request, $access_token)->getNextLicenseHistory();
+echo "\nGetting LicenseHistory...\n";
+try {
+    $lh_request = new LicenseHistoryRequest();
+    $lh_request->setLocale('en_US');
+    $lh_request->setSearchParams($lh_params);
+    $lh_request->setResultColumns($lh_result_cols_array);
+    $adobe_stock_client = new AdobeStock($api_key, $app_name, 'PROD', $http_client);
+    $lh_response = $adobe_stock_client
+        ->initializeLicenseHistory($lh_request, $access_token)
+        ->getNextLicenseHistory();
+    
+    # get number of results
+    $lh_total = $lh_response->getNbResults();
+    printf("Found %d results\n", $lh_total);
+    printf("Displaying first %s results\n", $lh_limit);
 
-# get number of results
-$lh_total = $lh_response->getNbResults();
-printf("Found %d results\n", $lh_total);
-printf("Displaying first %s results\n", $lh_limit);
+    # get files array from search and iterate over results
+    displayResults($lh_response->getFiles());
+
+    # display next page of results
+    if ($lh_total > $lh_limit) {
+        echo "\nDisplaying next $lh_limit results.\n";
+        # getting second page of results
+        $adobe_stock_client = new AdobeStock($api_key, $app_name, 'PROD', $http_client);
+        $lh_response = $adobe_stock_client
+            ->initializeLicenseHistory($lh_request, $access_token)
+            ->getLicenseHistoryPage(1);
+        displayResults($lh_response->getFiles());
+    }
+} catch (\Throwable $e) {
+    var_dump($e->getMessage());
+}
 
 # utility function to parse license history results
 function displayResults($response_files)
@@ -230,16 +251,4 @@ function displayResults($response_files)
         # print id, title and thumbnail URL for each result
         printf("[%s] : Licensed on %s\nPreview: %s\n", $id, $date, $url);
     }
-}
-
-# get files array from search and iterate over results
-displayResults($lh_response->getFiles());
-
-# display next page of results
-if ($lh_total > $lh_limit) {
-    echo "\nDisplaying next $lh_limit results.\n";
-    # getting second page of results
-    $adobe_stock_client = new AdobeStock($api_key, $app_name, 'PROD', $http_client);
-    $lh_response = $adobe_stock_client->initializeLicenseHistory($lh_request, $access_token)->getLicenseHistoryPage(1);
-    displayResults($lh_response->getFiles());
 }
