@@ -1,0 +1,10 @@
+domain=adobe.com
+orgId=your-org-guid@your-org
+apiKey=your-api-key-here
+clientSecret=your-client-secret-here
+techAcct=your-tech-acct-gui@techacct.adobe.com
+privKeyFilename=server-key.der
+environment=prod
+product=MySampleApp/1.0
+scopes=ent_stocksearch_sdk
+imsHost=ims-na1.adobelogin.com

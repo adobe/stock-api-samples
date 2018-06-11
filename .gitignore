@@ -4,5 +4,6 @@ php/vendor/
 *.zip
 *.key
 *.crt
-php/src/Config/AppConfig-cfs.php
+php/src/Config/AppConfigCFS*
 *.jpeg
+tests/
