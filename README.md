@@ -4,6 +4,8 @@ The [Adobe Stock API](https://www.adobe.io/apis/creativecloud/stock.html) allows
 
 Full API documentation is available at https://www.adobe.io/apis/creativecloud/stock/docs/getting-started.html. 
 
+The SDKs used in the examples are found at https://github.com/adobe/stock-api-sdk, but they are also included in each sample project.
+
 ### How to use
 
 Code samples are organized into separate project folders. Refer to the README file in each for instructions.
