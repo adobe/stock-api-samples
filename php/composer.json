@@ -11,13 +11,13 @@
     ],
     "repositories": [
         {
-            "type": "path",
-            "url": "./libs/stock-api-libphp"
+            "type": "vcs",
+            "url": "git@github.com:adobe/stock-api-libphp.git"
         }
     ],
     "require": {
         "php": "~7.1",
-        "astock/stockapilibphp": "dev-master",
+        "astock/stock-api-libphp": "dev-master",
         "firebase/php-jwt": "^4.0",
         "guzzlehttp/guzzle": "~6.0"
     },
