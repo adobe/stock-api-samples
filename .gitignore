@@ -7,3 +7,4 @@ php/vendor/
 php/src/Config/AppConfigCFS*
 *.jpeg
 tests/
+ProdConfigCFS.properties
