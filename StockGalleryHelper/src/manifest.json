@@ -1,0 +1,52 @@
+{
+    "name": "Adobe Stock Gallery Helper",
+    "version": "0.1.1",
+    "manifest_version": 2,
+    "description": "Use to manage Adobe Stock galleries",
+    "icons": {
+      "128": "images/stock-ext-icon-128.png",
+      "64": "images/stock-ext-icon-64.png",
+      "16": "images/stock-ext-icon-20.png"
+    },
+    "page_action": {
+      "active_title": "StockGalleryHelper",
+      "active_icon": "images/stock-ext-icon-20.png",
+      "default_title": "Sign in and visit a Stock Library page to use this extension.",
+      "default_icon": "images/stock-ext-icon-blocked-32.png"
+    },
+    "background": {
+      "scripts": [
+        "background/hot-reload.js",
+        "background/background.js",
+        "background/services.mjs"
+      ],
+      "persistent": false
+    },
+    "permissions": [
+      "activeTab",
+      "tabs",
+      "storage",
+      "https://sandbox.stock.stage.adobe.com/*",
+      "https://primary.stock.stage.adobe.com/*",
+      "https://stock.adobe.com/",
+      "https://*.dev.loc/*",
+      "https://*.adobe.io/*"
+    ],
+    "content_security_policy": "script-src 'self' https://*.adobe.com https://*.adobe.io; object-src 'self'",
+    "content_scripts": [
+      {
+        "matches": [
+          "https://primary.stock.stage.adobe.com/*Library/*",
+          "https://sandbox.stock.stage.adobe.com/*Library/*",
+          "https://stock.adobe.com/*Library/*",
+          "https://contributors.dev.loc/*Library/*"
+        ],
+        "css": [ "styles/content.css"],
+        "js": [
+          "content-scripts/jquery-3.4.1.slim.min.js",
+          "content-scripts/content.js"
+        ]
+      }
+    ]
+  }
+  

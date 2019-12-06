@@ -1,0 +1,130 @@
+/*
+ * Copyright 2019 Adobe. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
+/* rules for Stock thumbnails to be injected into Stock site */
+.gal {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  background:
+    url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAABNElEQVQokaWTsUpDMRSGv/9SxKk4lA4iRXQQilvi5kM4KXRwUZDiLnR0cHIQXPQBdCni6Es06SAOUlQcOklnkYv0OHgrl3IvWD0QDkn48p/zJ5Fh/DWSso3QC4sxxIWZ4dALiaRTM2vNDEvaBFpAJ4ZY/TWclXqYHbIE7MYQK4UiIYQq0AQaQB1wwBYw6fcV6ALPZvYm6QkYOO/SipmtAGeS1oF5YFplGTgCUknvwA3QAUaJpHtJJ8BnAZiPCtAHjp13I4DEeTcG7oA2MDT7vveCfAXsOe+GPz1PHklmyjWwbWZIIp+BVb/hX/Kl5N2uArUyZUmN6T7ycD0bSPqQ1JX0kM0xs2aRCROFmqSxpEvgwsweJc0B+8AOsFYKSxoAB0DfeZdmy2kM8Ry4lVSbhvWfX/UFH8x24ZKSaNIAAAAASUVORK5CYII=)
+    no-repeat
+    center center;
+  opacity: 0.5;
+}
+
+.gal:hover {
+  background:
+    url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAABNElEQVQokaWTsUoDURBFz12CWIUUIYVIEC2EYGdrl/0AK4UUNgoi9sLaWegWFoKNfoA2QSyt1l9IIRYSVCxSSWqRRXItkhhZs2B0muHNcJh375snY/4aQV7D9XiGelyaGHYYBxLHiMbEsGDF0LAdEcbF38NhXDLeFSBpFthwGBfGDnF4VARqNlWJis2yYBUx1PtiaAJPwq+gR6BNEqUFw7zgRGIJmJbITpkT7AEp6A24Mo4E3QBzZ3wIfMAP8CuMC0ALOFCy3wUIdBv1hG5sdoCO3X/3bBZcYDZJos5I83BJ+qZcAmu2kUQmL5BEz3luF23K+demmq19hysSFQBJ77abku4HZ8C1LDwyyC4j9cDnoDNJD8CU8RZoHbSYCxu1hbdBLZIoHZRTwvhUcM0YSfrPr/oEU1J4B0uu/m4AAAAASUVORK5CYII=)
+    no-repeat
+    center center
+    #ffffff;
+}
+
+.gal:active {
+  opacity: 0.9;
+  background-color: #000000;
+}
+
+
+#galleryHelperModal.modalDialog {
+	position: fixed;
+	font-family: inherit;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: rgba(0,0,0,0.8);
+	z-index: 99999;
+	opacity:1;
+	-webkit-transition: opacity 400ms ease-in;
+	-moz-transition: opacity 400ms ease-in;
+	transition: opacity 400ms ease-in;
+	/* pointer-events: none; */
+}
+
+/*
+#galleryHelperModal.modalDialog:target {
+	opacity:1;
+	pointer-events: auto;
+}
+*/
+
+#galleryHelperModal.modalDialog > div {
+	width: 30rem;
+	position: relative;
+	margin: 10% auto;
+	padding: 5px 20px 13px 20px;
+  border: 5px solid #dc3545;
+	border-radius: 10px;
+	background: #f5f5f5;
+}
+
+#galleryHelperModal .close {
+	background: #343a40;
+	color: #FFFFFF;
+	line-height: 25px;
+	position: absolute;
+	right: -12px;
+	text-align: center;
+	top: -10px;
+	width: 24px;
+	text-decoration: none;
+	font-weight: bold;
+  border: 1px solid #f5f5f5;
+	-webkit-border-radius: 12px;
+	-moz-border-radius: 12px;
+	border-radius: 12px;
+	-moz-box-shadow: 1px 1px 3px #000;
+	-webkit-box-shadow: 1px 1px 3px #000;
+	box-shadow: 1px 1px 3px #000;
+}
+
+#galleryHelperModal .close:hover { background: #dc3545; }
+
+/* gallery status banner */
+
+/* sets position of sibling element */
+.lib-header-menu > div {
+	position: relative;
+	float: right;
+}
+
+/* shows banner name and status on Library page */
+#galStatus.gallery-banner {
+	min-width: 15rem;
+	margin-right: 1rem;	
+	padding: 0.25rem;
+	padding-top: 0;
+	text-align: right;
+}
+
+#galStatus .gallery-status {
+  margin-top: -0.25rem;
+  padding: 0.5rem 0.25rem 0.25rem 0.25rem;
+}
+
+#galStatus.gallery-selected {
+  background-color: #28a745;
+  border: 1px solid #343a40;
+}
+
+#galStatus.gallery-selected .gallery-status {
+  color: #f5f5f5;
+}
+
+#galStatus.gallery-selected #galStatusText {
+  font-weight: bolder;
+}

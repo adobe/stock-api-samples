@@ -1,0 +1,17 @@
+{
+  "parser": "babel-eslint",
+  "extends": "airbnb-base",
+	"env": {
+		"browser": true,
+		"node": true
+	},
+  "globals": {
+  	"chrome": true
+  },
+  "rules": {
+    "no-console": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2019
+  }
+}

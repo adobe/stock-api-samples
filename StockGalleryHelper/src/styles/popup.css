@@ -1,0 +1,136 @@
+/*
+ * Copyright 2019 Adobe. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
+* {
+  box-sizing: border-box;
+}
+html, body {
+  /* width: 100%; */
+  height: 100%;
+  padding:0;
+  margin:0;
+}
+body {
+  font: 90%/1.1 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: #FFFFFF;
+}
+h1, h2 {
+  font-size: 14pt;
+}
+#content {
+  margin: 5px;
+  background-color: #f9f9f9;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  padding: 5px;
+  width: 100%;
+  /* height: calc(100% - 10px); */
+}
+.container {
+  overflow: auto;
+  width: 100%;
+  /* needed to size alert correctly */
+  position: relative;
+  /* height: calc(100% + 10px); */
+}
+
+.card-deck .card {
+  min-width: 220px;
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+.hide {
+  display: none;
+}
+
+/* overrides for datatable styling */
+/*
+@media screen and (max-width: 767px) {
+  div.dataTables_wrapper div.dataTables_length, div.dataTables_wrapper div.dataTables_filter, div.dataTables_wrapper div.dataTables_info, div.dataTables_wrapper div.dataTables_paginate {
+      text-align: left;
+  }
+}
+*/
+
+/* class applied when rows are selected */
+div.dataTables_wrapper table.dataTable .rowSelect {
+  background-color: darkred;
+  color: white;
+}
+.dataTables_wrapper .dataTables_length {
+  float: left;
+  margin: 0.5rem 1rem 0 0;
+}
+
+/* overrides location of images */
+div.dataTables_wrapper table.dataTable thead .sorting {
+  background-image: url("/images/sort_both.png")
+}
+
+div.dataTables_wrapper table.dataTable thead .sorting_asc {
+  background-image: url("/images/sort_asc.png")
+}
+
+div.dataTables_wrapper table.dataTable thead .sorting_desc {
+  background-image: url("/images/sort_desc.png")
+}
+
+div.dataTables_wrapper table.dataTable thead .sorting_asc_disabled {
+  background-image: url("/images/sort_asc_disabled.png")
+}
+
+div.dataTables_wrapper table.dataTable thead .sorting_desc_disabled {
+  background-image: url("/images/sort_desc_disabled.png")
+}
+
+/*
+.dataTables_wrapper, table.dataTable {
+  width: 100%;
+}
+*/
+#loader {
+  height: 12rem;
+}
+
+#loader .spinner-grow {
+  height: 10rem;
+  width: 10rem;
+}
+
+#alertDiv {
+  position: absolute;
+  width: calc(100% - 30px);
+  margin: 0 auto;
+  z-index: 10;
+}
+
+.table-thumb {
+  max-width: 150px;
+  max-height: 100px;
+}
+
+#statusBox {
+  min-width: 20rem;
+  height: 2rem;
+}
+
