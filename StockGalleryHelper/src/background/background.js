@@ -93,9 +93,9 @@ class Background {
   // stores data in local storage
   static store(obj, cb = null) {
     if (chrome.storage) {
-      chrome.storage.local.set(obj, cb || (() => {
+      chrome.storage.sync.set(obj, cb || (() => {
         const key = Object.keys(obj)[0];
-        chrome.storage.local.get(key, (item) => {
+        chrome.storage.sync.get(key, (item) => {
           console.log(`Stored ${key}:`, item[key]);
         });
       }));
@@ -105,7 +105,7 @@ class Background {
   // gets data and returns promise for chaining
   static retrieve(key) {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(key, (item) => {
+      chrome.storage.sync.get(key, (item) => {
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message;
           console.error(msg);
@@ -117,8 +117,9 @@ class Background {
     });
   }
 
+  // clears all storage -- should only be run when extension is initialized or logout occurs
   static emptyStorage() {
-    chrome.storage.local.clear();
+    chrome.storage.sync.clear();
   }
 
   // broadcasts messages to chrome runtime
@@ -150,6 +151,15 @@ class Background {
       });
     }
     return env || 'PROD';
+  }
+
+  // sets url and api key locally
+  static setConfigVars(data, env) {
+    // eslint-disable-next-line no-undef
+    const svc = stock;
+    const K = Background.CONSTANTS;
+    svc.CFG.URL[env] = data[K.DATA.URL];
+    svc.CFG.API_KEY[env] = data[K.DATA.API_KEY];
   }
 
   // makes service call
@@ -193,6 +203,7 @@ const {
   callStockService,
   getEnvironment,
   CONSTANTS: K,
+  setConfigVars,
 } = Background;
 
 // called when popup closes or galleries are refreshed
@@ -216,7 +227,7 @@ async function onGalleryReady(input) {
   } else {
     gallery = input;
   }
-  if (gallery) {
+  if (gallery && gallery.id) {
     // notify content script that gallery is set
     notify({
       status: K.EVENTS.GALLERY.SET,
@@ -381,6 +392,20 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       onGalleryReset();
       break;
     }
+    case K.EVENTS.OPTIONS.SET: {
+      const { data } = message;
+      if (data) {
+        // put in local storage
+        store({
+          [K.DATA.URL]: data[K.DATA.URL],
+          [K.DATA.API_KEY]: data[K.DATA.API_KEY],
+        });
+        // update local services var
+        setConfigVars(data, getEnvironment(data[K.DATA.URL]));
+      }
+      break;
+    } case K.EVENTS.OPTIONS.RESET:
+      break;
     default:
       break;
   }

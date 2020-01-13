@@ -91,6 +91,29 @@ $(document).ready(() => {
 
   // HANDLERS
   // -------------
+
+  // shows error if options are not configured
+  const onOptionsNotSet = () => {
+    const msg = 'You must set a valid API key and Gallery endpoint URL to use this extension. When these values are set, reload or refresh this extension.';
+    showAlert(msg, K.UI.ALERT.ERROR);
+    chrome.runtime.openOptionsPage();
+  };
+
+  // checks if endpoint/api key are NOT defined in options and throws error or runs next function
+  const checkOptionsNotSet = (successFunc) => {
+    const apiKey = retrieve(K.DATA.API_KEY);
+    const endpoint = retrieve(K.DATA.URL);
+    return Promise.all([
+      apiKey, endpoint,
+    ]).then(([a, e]) => {
+      if (!(a && e)) {
+        onOptionsNotSet();
+      } else {
+        successFunc();
+      }
+    });
+  };
+
   // new gallery form handler
   const onGalleryFormSubmit = (e) => {
     // override submit behavior
@@ -227,8 +250,8 @@ $(document).ready(() => {
     console.log('adjusted');
   });
 
-  // gallery refresh button
-  $(K.UI.GALLERY.REFRESH).on('click', onGalleryRefresh);
+  // gallery refresh button: only works if options are set
+  $(K.UI.GALLERY.REFRESH).on('click', (() => checkOptionsNotSet(onGalleryRefresh)));
 
   // listen for click on gallery contents row using delegate
   /*
@@ -442,7 +465,7 @@ $(document).ready(() => {
           $gt.rows().deselect();
           setStatus(K.UI.STATUS.STATE.RESET);
           // refresh gallery list
-          onGalleryRefresh();
+          checkOptionsNotSet(onGalleryRefresh);
           break;
         case DIR: {
           $ct.clear()
@@ -490,7 +513,8 @@ $(document).ready(() => {
       }
     }
   });
-  // get gallery list
-  onGalleryRefresh();
+
+  // if api key and endpoint are populated, refresh gallery contents
+  checkOptionsNotSet(onGalleryRefresh);
   init();
 });
