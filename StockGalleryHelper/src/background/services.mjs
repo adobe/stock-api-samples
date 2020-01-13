@@ -13,16 +13,17 @@
 const stock = {};
 
 stock.CFG = {
+  API_KEY: {
+    PROD: '',
+  },
   URL: {
-    PROD: '{ENDPOINT URL HERE}',
+    PROD: '',
   },
   // returns pagination parameters
   PAGE_PARAMS: (l, p) => `?limit=${l}&page=${p}`,
   SETID: (id) => `/${id}`,
   HEADERS: (env, token) => {
-    const key = {
-      PROD: '{API KEY}',
-    };
+    const key = stock.CFG.API_KEY;
     return {
       Accept: 'application/vnd.adobe.stockcontrib.v2',
       'x-api-key': key[env],
@@ -94,7 +95,13 @@ stock.http = {
       // parse JSON from fetch body
       // see https://developer.mozilla.org/en-US/docs/Web/API/Body/json
       return res.json();
-    }).catch((e) => e);
+    }).catch((e) => {
+      // check for bad domain
+      if (e.message === 'Failed to fetch' && e.name === 'TypeError') {
+        e.message = 'Unable to call Galleries API. Please check Gallery URL in options.';
+      }
+      throw e;
+    });
     return request;
   },
 };

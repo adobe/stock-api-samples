@@ -80,9 +80,9 @@ class Content {
   static store(obj) {
     if (chrome.storage) {
       console.log(obj);
-      chrome.storage.local.set(obj, () => {
+      chrome.storage.sync.set(obj, () => {
         const key = Object.keys(obj)[0];
-        chrome.storage.local.get(key, () => {
+        chrome.storage.sync.get(key, () => {
           console.log('Storing %s', key);
         });
       });
@@ -97,7 +97,7 @@ class Content {
   // gets data and returns promise for chaining
   static retrieve(key) {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(key, (item) => {
+      chrome.storage.sync.get(key, (item) => {
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message;
           console.error(msg);

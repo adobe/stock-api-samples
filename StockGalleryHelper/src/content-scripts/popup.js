@@ -31,7 +31,6 @@ const Popup = (() => {
       P: 'popup',
     },
     UI: {
-      // TODO: Define UI for status bar and change when gallery is selected
       STATUS: {
         BANNER: {
           ID: '#statusBanner',
@@ -144,6 +143,8 @@ const Popup = (() => {
       ENV: 'environment',
       POPUP: 'helper',
       COUNT: 'nb_results',
+      API_KEY: 'apiKey',
+      URL: 'endpoint',
     },
     ACTION: {
       GET: 'getGalleries',
@@ -179,7 +180,7 @@ const Popup = (() => {
 
   // gets data from local storage; returns async function
   const retrieve = (key) => new Promise((resolve, reject) => {
-    chrome.storage.local.get(key, (item) => {
+    chrome.storage.sync.get(key, (item) => {
       if (chrome.runtime.lastError) {
         const msg = chrome.runtime.lastError.message;
         console.error(msg);
