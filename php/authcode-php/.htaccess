@@ -1,0 +1,19 @@
+# Rewrites URLs so they can be handled by PHP routing
+# http://blogs.shephertz.com/2014/05/21/how-to-implement-url-routing-in-php/
+
+Options -MultiViews
+RewriteEngine On
+
+# if file ends in a static extension, redirect to /www
+# END directive prevents endless loop
+RewriteCond %{REQUEST_URI} \.(html|js|css|jpg|png|svg)
+#RewriteRule ^(.+)\/(.+)\.((?!io).+) $1/www/$2.$3 [QSA,L]
+RewriteRule (.*) www/$1 [QSA,END,NC] 
+
+# if the file with the specified name in the browser doesn't exist, 
+# or the directory in the browser doesn't exist 
+# then proceed to the rewrite rule below
+RewriteCond %{REQUEST_FILENAME} !-f
+# redirect everything else to router.php
+RewriteRule ^ ./src/Router.php [QSA,L] 
+# RewriteRule ^ 'D:/WWW/stockwork/authcode-php/src/Router.php' [QSA,L] 

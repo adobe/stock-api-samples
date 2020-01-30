@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>IMS authcode login demo</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+
+<body>
+  <h1>IMS authorization code login demo</h1>
+  <h2>Step 1: Sign in</h2>
+  <button id="csdk-login">Log into Creative Cloud</button>
+  <button id="csdk-logout">Log out of Creative Cloud</button>
+  <p>
+    Login status: <span id="status">Unknown</span>
+  </p>
+  <p>&nbsp;</p>
+  <h2>Step 2: Access protected resource</h2>
+  <p>
+    <label for="get-quota">Stock Member/Profile API</label>
+    <button id="get-quota">Get quota</button>
+  </p>
+  <p>
+    Stock quota: <span id="quota">N/A</span>
+  </p>
+
+  <!-- Main script -->
+  <script type="text/javascript" src="login-authcode.js"></script>
+</body>
+</html>

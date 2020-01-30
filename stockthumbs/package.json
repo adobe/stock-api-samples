@@ -1,0 +1,24 @@
+{
+  "name": "astock-stockthumbs",
+  "version": "1.2.4",
+  "description": "Reference integration of Adobe Stock search results",
+  "main": "src/sdk_stockthumbs.js",
+  "scripts": {
+    "build": "babel src/sdk_stockthumbs.js --out-file dist/sdk_stockthumbs.min.js --source-maps && babel src --out-dir dist --copy-files && babel src/custom-stockthumbs.js --out-file dist/custom-stockthumbs.min.js --source-maps && rm dist/*src.html && rm dist/*stockthumbs.js && rm -r dist/archive && git archive --format=zip --prefix=stockthumbs/ HEAD:dist/ -o stockthumbs-$npm_package_version.zip"
+  },
+  "author": "cfsmith@adobe.com",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chfabbro/astock-stockthumbs.git"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "babel-plugin-transform-remove-console": "^6.9.4"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.2.5"
+  }
+}

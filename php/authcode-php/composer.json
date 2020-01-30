@@ -1,0 +1,19 @@
+{
+    "name": "stockapi/php-authcode",
+    "description": "Auth code sample for PHP",
+    "license": "Apache-2.0",
+    "require": {
+        "firebase/php-jwt": "^4.0",
+        "php-console/php-console": "^3.1",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "require-dev": {
+        "phpmd/phpmd" : "@stable"
+    },
+    "autoload": {
+        "psr-4": {
+            "IMS\\": "src/",
+            "Vendor\\Namespace\\": ""
+        }
+    }
+}

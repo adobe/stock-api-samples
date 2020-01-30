@@ -1,0 +1,5 @@
+src/archive/*
+node_modules/
+.eslintrc.json
+src/creativepixel2-src.html,src/creativepixel1-src.html
+creativepixel*.html
