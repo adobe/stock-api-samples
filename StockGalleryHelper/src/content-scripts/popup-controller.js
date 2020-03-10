@@ -100,18 +100,19 @@ $(document).ready(() => {
   };
 
   // checks if endpoint/api key are NOT defined in options and throws error or runs next function
-  const checkOptionsNotSet = (successFunc) => {
+  const checkOptionsNotSet = async (successFunc) => {
     const apiKey = retrieve(K.DATA.API_KEY);
     const endpoint = retrieve(K.DATA.URL);
-    return Promise.all([
-      apiKey, endpoint,
-    ]).then(([a, e]) => {
-      if (!(a && e)) {
-        onOptionsNotSet();
-      } else {
-        successFunc();
-      }
-    });
+    const [a, e] = await Promise.all([
+      apiKey,
+      endpoint,
+    ]);
+    if (!(a && e)) {
+      onOptionsNotSet();
+    }
+    else {
+      successFunc();
+    }
   };
 
   // new gallery form handler
@@ -468,6 +469,10 @@ $(document).ready(() => {
           checkOptionsNotSet(onGalleryRefresh);
           break;
         case DIR: {
+          // reverse data order
+          if (data.files) {
+            data.files.reverse();
+          }
           $ct.clear()
             .rows.add(prepData(data, status))
             .draw()

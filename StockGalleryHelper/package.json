@@ -1,6 +1,6 @@
 {
   "name": "stockgalleryhelper",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Use to manage Adobe Stock galleries",
   "main": "index.js",
   "scripts": {
