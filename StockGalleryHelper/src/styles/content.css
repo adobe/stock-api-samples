@@ -13,7 +13,7 @@
 /* rules for Stock thumbnails to be injected into Stock site */
 .gal {
   position: absolute;
-  top: 5px;
+  bottom: 5px;
   left: 5px;
   width: 30px;
   height: 30px;
@@ -22,7 +22,7 @@
     url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAABNElEQVQokaWTsUpDMRSGv/9SxKk4lA4iRXQQilvi5kM4KXRwUZDiLnR0cHIQXPQBdCni6Es06SAOUlQcOklnkYv0OHgrl3IvWD0QDkn48p/zJ5Fh/DWSso3QC4sxxIWZ4dALiaRTM2vNDEvaBFpAJ4ZY/TWclXqYHbIE7MYQK4UiIYQq0AQaQB1wwBYw6fcV6ALPZvYm6QkYOO/SipmtAGeS1oF5YFplGTgCUknvwA3QAUaJpHtJJ8BnAZiPCtAHjp13I4DEeTcG7oA2MDT7vveCfAXsOe+GPz1PHklmyjWwbWZIIp+BVb/hX/Kl5N2uArUyZUmN6T7ycD0bSPqQ1JX0kM0xs2aRCROFmqSxpEvgwsweJc0B+8AOsFYKSxoAB0DfeZdmy2kM8Ry4lVSbhvWfX/UFH8x24ZKSaNIAAAAASUVORK5CYII=)
     no-repeat
     center center;
-  opacity: 0.5;
+  opacity: 0.75;
 }
 
 .gal:hover {

@@ -100,7 +100,7 @@ stock.http = {
       if (e.message === 'Failed to fetch' && e.name === 'TypeError') {
         e.message = 'Unable to call Galleries API. Please check Gallery URL in options.';
       }
-      throw e;
+      return e;
     });
     return request;
   },

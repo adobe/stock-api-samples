@@ -179,6 +179,8 @@ class Background {
         throw svc.http.parseErrors({ code: K.ERROR_CODES.TOKEN_PROBLEM });
       }
       return [environment, t];
+    }).catch((e) => {
+      console.error(e);
     });
     // append any incoming parameters
     args.push(input);
@@ -190,7 +192,7 @@ class Background {
       return response;
     } catch (e) {
       // return either a JS error message or internal error string
-      throw (e.message || e);
+      return (e.message || e);
     }
   }
 }
