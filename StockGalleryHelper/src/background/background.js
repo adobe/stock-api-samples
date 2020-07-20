@@ -36,6 +36,7 @@ class Background {
       DIR: 'getContent',
       ADD: 'addContent',
       REM: 'removeContent',
+      IMP: 'importContent',
     },
     RESPONSE: {
       GET: 'getGalleriesResponse',
@@ -44,8 +45,10 @@ class Background {
       DIR: 'getContentResponse',
       ADD: 'addContentResponse',
       REM: 'removeContentResponse',
+      IMP: 'importContentResponse',
       ERROR: 'Error',
     },
+    // determines which environment extension is running by reading URL from config options
     ENV: {
       PROD: ['stock.adobe', 'contributor.stock.adobe'],
       STAGE: ['primary.stock.stage.adobe', 'staging1.contributors.adobestock', 'sandbox.stock.stage.adobe'],
@@ -53,6 +56,13 @@ class Background {
     },
     // key values for local storage
     DATA: {
+      /**
+       * The response models map generic HTTP requests to specific JSON objects from Stock
+       * BASE: JSON root element to be parsed
+       * COUNT: Name of JSON element containing number of elements
+       * MAP: Specific elements to retrieve from each JSON array item
+       * LIMIT: Max number of results to fetch with each request
+       */
       getGalleriesResponse: {
         BASE: 'galleries',
         COUNT: 'nb_results',
@@ -75,6 +85,12 @@ class Background {
           'thumbnail_url',
           'href',
         ],
+        LIMIT: 100, // api request limit
+      },
+      importContentResponse: {
+        BASE: 'files',
+        COUNT: 'nb_results',
+        MAP: ['id'],
         LIMIT: 100, // api request limit
       },
       TOKEN: 'access_token',
@@ -162,7 +178,7 @@ class Background {
     svc.CFG.API_KEY[env] = data[K.DATA.API_KEY];
   }
 
-  // makes service call
+  // makes service call (services located in services.mjs)
   static async callStockService(method, input, pageModel) {
     // eslint-disable-next-line no-undef
     const svc = stock;
@@ -241,47 +257,60 @@ async function onGalleryReady(input) {
   }
 }
 
-// execute workflows initiated by 'action' message
+// execute service workflows initiated by 'action' message
 function actionHandler(msg) {
+  // store data object to send to service
   const input = msg.data;
   let status;
   let pageModel;
   const { action } = msg;
   switch (msg.action) {
+    // get list of galleries
     case K.ACTION.GET: {
       status = K.RESPONSE.GET;
-      // attach data object for pagination support
       const { BASE, COUNT, LIMIT } = K.DATA[status];
       pageModel = { BASE, COUNT, LIMIT };
       break;
     }
+    // create new gallery
     case K.ACTION.NEW: {
       status = K.RESPONSE.NEW;
       break;
     }
+    // delete gallery
     case K.ACTION.DEL: {
       status = K.RESPONSE.DEL;
       break;
     }
+    // list gallery contents
     case K.ACTION.DIR: {
       status = K.RESPONSE.DIR;
       // store current galleryId and name
       store({
         [K.DATA.GALLERY]: input,
       });
-      // notify content that gallery is set
+      // notify content script that gallery is set so UI can be updated
       onGalleryReady(input);
       // attach data object for pagination support
       const { BASE, COUNT, LIMIT } = K.DATA[status];
       pageModel = { BASE, COUNT, LIMIT };
       break;
     }
+    // add contents to gallery
     case K.ACTION.ADD: {
       status = K.RESPONSE.ADD;
       break;
     }
+    // delete/remove gallery contents item
     case K.ACTION.REM: {
       status = K.RESPONSE.REM;
+      break;
+    }
+    // import existing gallery contents
+    case K.ACTION.IMP: {
+      status = K.RESPONSE.IMP;
+      const { BASE, COUNT, LIMIT } = K.DATA[status];
+      pageModel = { BASE, COUNT, LIMIT };
       break;
     }
     default:
@@ -415,10 +444,22 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 // listens for click on extension
 chrome.pageAction.onClicked.addListener(() => {
+  // recreates helper tab if closed
+  const onRecreate = (() => {
+    // create popup and store tab id
+    chrome.tabs.create({
+      url: chrome.extension.getURL('popup.html'),
+      active: true,
+    }, (t) => {
+      console.log(`created tab with id ${t.id}`);
+      store({ [K.DATA.POPUP]: t });
+    });
+  });
   const openTab = ((tab) => {
     if (chrome.runtime.lastError) {
       console.log(chrome.runtime.lastError.message);
-      throw (chrome.runtime.lastError.message);
+      // throw (chrome.runtime.lastError.message);
+      onRecreate();
     } else {
       chrome.tabs.highlight({
         tabs: tab.index,
@@ -431,13 +472,6 @@ chrome.pageAction.onClicked.addListener(() => {
     console.log(`switching to tab ${id}`);
     chrome.tabs.get(id, openTab);
   }).catch(() => {
-    // create popup and store tab id
-    chrome.tabs.create({
-      url: chrome.extension.getURL('popup.html'),
-      active: true,
-    }, (t) => {
-      console.log(`created tab with id ${t.id}`);
-      store({ [K.DATA.POPUP]: t });
-    });
+    onRecreate();
   });
 });
