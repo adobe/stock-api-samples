@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >        
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"> 
+  <!-- Hiding the Safari on iPhone OS UI components --> 
+  <meta name="apple-mobile-web-app-capable" content="yes" > 
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" > 
+  <meta name="apple-touch-fullscreen" content="YES" >
+  <title>Adobe Stock SDK search widget</title>
+  <link href='https://fonts.googleapis.com/css?family=Oxygen:300' rel='stylesheet' type='text/css'>
+  <style type="text/css">
+    html, body {
+      width:100%;
+      height:100%;
+    }
+    body {
+      padding:0;
+      margin:10px;
+      font: 100%/1.1 'Oxygen', sans-serif;;
+      background: #ffffff;
+      overflow-x: hidden;
+    }
+    #main {
+      float: left;
+      width: 52%;
+      padding-right: 3%;
+    }
+    #sidebar {
+      float: right;
+      width: 38%;
+      margin-right: 5%;
+    }
+    #footer {
+        position: relative;
+        bottom: 0;
+        padding-bottom: 5px;
+        clear: both;
+        margin: 10px auto 0 auto;
+        text-align: center;
+        width: 100%;
+        background-color: white;
+        height: 5vh;
+    }
+    .unfloat:after { 
+       content: "."; 
+       visibility: hidden; 
+       display: block; 
+       height: 0; 
+       clear: both;
+    }
+    @media only screen and (max-width: 767px) and (min-width: 0) {
+      #main, #sidebar {
+          float: none;
+          width: 100%;
+      }
+    }
+    fieldset {
+      border: none;
+    }
+    #header {
+      padding-left: 60px;
+    }
+    #header h4 {
+      color: #70B7FD;
+      margin-bottom: 0.75ex;
+    }
+    #header h4 a {
+      color: #70B7FD;
+      text-decoration: none;
+    }
+    #header h1 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="main" class="unfloat">
+    <div id="header">
+      <h4>&#x2B05;&#x2B05;&#x2B05; <a href="https://github.com/chfabbro/astock-searchbar">Click here for GitHub repo</a></h4>
+      <h1>Stock Searchbar Video Demo</h1>
+    </div>
+    <img id="hero" src="https://images.pexels.com/photos/1471603/pexels-photo-1471603.jpeg?auto=compress&cs=tinysrgb&h=400&w=600&fit=crop" />
+    <div class="text">
+      <h2>Clever title for image</h2>
+
+      <p>Lord Henry laughed. "The reason we all like to think so well of others is that we are all afraid for ourselves. The basis of optimism is sheer terror. We think that we are generous because we credit our neighbour with the possession of those virtues that are likely to be a benefit to us. We praise the banker that we may <a class="external ext" href="#">overdraw our account</a>, and find good qualities in the highwayman in the hope that he may spare our pockets. I mean everything that I have said. I have the greatest contempt for optimism. As for a <strong>spoiled</strong> life, no life is spoiled but one whose growth is arrested. If you want to mar a nature, you have merely to reform it. As for marriage, of course that would be silly, but there are other and more interesting bonds between men and women. I will certainly encourage them. They have the charm of being fashionable. But here is Dorian himself. He will tell you more than I can."</p>
+    </div>
+  </div>
+  <div id="sidebar" class="unfloat">
+
+  <!-- Begin Stock SearchBar -->
+  <!-- SearchBar container -->
+  <div id="astock-searchbar" class="astock-searchbar unfloat"></div>
+  <!-- SearchBar styles -->
+  <link rel="stylesheet" type="text/css" href="./sdk_searchbar_styles.css">
+  <!-- SearchBar script include -->
+  <script type="text/javascript" src="./sdk_searchbar.js"></script>
+  <script type="text/javascript">
+    StockSearchBar.config = {
+      // container where SearchBar will appear
+      contId: '#astock-searchbar',
+      // search filters
+      filters: {
+        // first param is CSS selector of element containing keywords
+        // second param is how many keywords to include
+        WORDS: ['title', 3],
+        // optional: restricts search to ONLY video content
+        FILTERS_CONTENT_TYPE_VIDEO: 1,
+        THUMBNAIL_SIZE: 220,
+        LIMIT: 16,
+      },
+      // Stock api key registered on console.adobe.io
+      // DO NOT USE THIS ONE!
+      apiKey: 'b3f036780e4148b6a3f845bbe4c6de45',
+      // Name you choose for app (whatever you want)
+      appName: 'Stock-Searchbar/1.2',
+      // Your affiliate data--Change these values to receive credit!
+      programID: 264355,
+      advertiserID: 3033058,
+      adID: 22804962,
+      // create bubble tooltips over thumbnails
+      tooltips: true,
+      // enables video preview thumbnails
+      videoSupport: true,
+      // sets CTA link type in banner
+      // 'fmf': First-month free (images only) -> default
+      // 'video': Promotes credit packs (for video)
+      ctaLink: 'video',
+    };
+    StockSearchBar.init(StockSearchBar.config);
+  </script>
+  <!-- End Stock SearchBar -->
+
+  </div>
+  <div id="footer">
+    <!-- Sample images provided by https://pexels.com/ -->
+    <h3>Get source code on <a href="https://github.com/chfabbro/astock-searchbar">GitHub</a></h3>
+  </div>
+  <!-- Thanks to http://tholman.com/github-corners/ -->
+  <a href="https://github.com/chfabbro/astock-searchbar" class="github-corner" aria-label="View source on Github"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#70B7FD; color:#fff; position: absolute; top: 0; border: 0; left: 0; transform: scale(-1, 1);" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+  <!-- for demo purposes only, loads a random image and allows changing demo type -->
+  <script type="text/javascript">
+    (function() {
+      var loc = document.location;
+      // load random unsplash image and title
+      var imageLoader = function() {
+        var requestUrl = './pexels_data.json';
+        var request = new XMLHttpRequest();
+        request.open('GET', requestUrl);
+        request.responseType = 'json';
+        request.send();
+        request.onload = function() {
+          var data = request.response;
+          var id = Math.floor(Math.random() * data.length);
+          var img = document.getElementById('hero');
+          var title = document.querySelector('.text h2');
+          var desc = data[id]['description'];
+          img.src = data[id]['urls__small'];
+          title.textContent = desc;
+          document.title = desc;
+        };        
+      }();
+    })();
+  </script>  
+</body>
+</html>
