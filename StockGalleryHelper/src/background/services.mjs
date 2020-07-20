@@ -14,21 +14,30 @@ const stock = {};
 
 stock.CFG = {
   API_KEY: {
-    PROD: '',
+    PROD: '***REMOVED***',
   },
   URL: {
-    PROD: '',
+    PROD: '***REMOVED***',
+  },
+  SEARCH: {
+    PROD: 'https://stock.adobe.io',
+    ENDPOINT: 'Rest/Media/1/Search/Files',
+    SETID: (id) => `search_parameters[gallery_id]=${id}`,
+    PAGE_DEFAULT: (limit, page) => `&search_parameters[limit]=${limit}&search_parameters[offset]=${(page - 1) * limit}`,
   },
   // returns pagination parameters
-  PAGE_PARAMS: (l, p) => `?limit=${l}&page=${p}`,
-  SETID: (id) => `/${id}`,
+  PAGE_DEFAULT: (l, p) => `?limit=${l}&page=${p}`,
   HEADERS: (env, token) => {
     const key = stock.CFG.API_KEY;
-    return {
+    const headers = {
       Accept: 'application/vnd.adobe.stockcontrib.v2',
       'x-api-key': key[env],
-      Authorization: `Bearer ${token}`,
+      'x-product': 'StockGalleryHelper',
     };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return headers;
   },
 };
 
@@ -43,6 +52,9 @@ stock.http = {
         break;
       case 111:
         msg = 'You must be signed into Adobe Stock to use this extension. Close the popup and sign into Stock in the main window before re-opening.';
+        break;
+      case 200:
+        msg = 'There are no valid content IDs in the gallery to be imported or the gallery is empty. Please check the ID before trying again.';
         break;
       case 2401:
         msg = 'Gallery ID is not valid for your account.';
@@ -74,7 +86,6 @@ stock.http = {
       method, headers, body, credentials: 'omit', cache: 'no-store', redirect: 'error', mode: 'cors',
     });
     // console.log(fetchRequest);
-    // return false;
     const request = fetch(fetchRequest).then((response) => {
       // clone response so it can be edited
       // see https://stackoverflow.com/a/54115314
@@ -136,10 +147,14 @@ stock.deleteGallery = async (env, token, id) => {
   return data;
 };
 
-// calls endpoint multiple times until all results are loaded...
+/**
+ * calls endpoint multiple times using pagination until all results are loaded
+ * @param {object} args - object containing request params
+ * @returns {object} containing {int} totalResults and {array} totalData
+ */
 stock.getAllResults = async (args) => {
   const {
-    url, env, token, model,
+    url, env, token, model, pageParams,
   } = args;
   // get data model for method
   const { BASE, LIMIT } = model;
@@ -151,9 +166,10 @@ stock.getAllResults = async (args) => {
   let totalPages = 0;
   let data;
   let totalResults;
+  // TODO: Refactor to allow paginated call to search api
   do {
     // append pagination parameters to URL
-    req.url = `${url}${stock.CFG.PAGE_PARAMS(LIMIT, page)}`;
+    req.url = `${url}${pageParams(LIMIT, page)}`;
     console.log(req.url);
     // eslint-disable-next-line no-await-in-loop
     data = await stock.http.send(req);
@@ -174,12 +190,12 @@ stock.getAllResults = async (args) => {
 stock.getGalleries = async (env, token, ...args) => {
   // STATIC testing
   // const url = chrome.runtime.getURL('/background/other/getgalleries_large1.json');
-  // 403 error
-  // const url = 'https://contributors.adobe.io/api/user/assets';
   const url = `${stock.CFG.URL[env]}`;
   const model = args[1];
+  // define pagination commands
+  const pageParams = stock.CFG.PAGE_DEFAULT;
   const data = await stock.getAllResults({
-    url, env, token, model,
+    url, env, token, model, pageParams,
   });
   return {
     [model.COUNT]: data.totalResults,
@@ -190,8 +206,10 @@ stock.getGalleries = async (env, token, ...args) => {
 stock.getContent = async (env, token, gallery, model) => {
   // const url = chrome.runtime.getURL('/background/other/getcontent_large1.json');
   const url = `${stock.CFG.URL[env]}/${gallery.id}`;
+  // define pagination commands
+  const pageParams = stock.CFG.PAGE_DEFAULT;
   const data = await stock.getAllResults({
-    url, env, token, model,
+    url, env, token, model, pageParams,
   });
   return {
     [model.COUNT]: data.totalResults,
@@ -220,4 +238,52 @@ stock.removeContent = async (env, token, { id, contentId }) => {
   };
   const data = await stock.http.send(req);
   return data;
+};
+
+/**
+ * multi-step operation:
+ * - uses Search API to read contents of gallery to import
+ * - calls addContent method to add content to target gallery
+ */
+stock.importContent = async (env, token, { id, importId }, model) => {
+  const searchUrlbase = `${stock.CFG.SEARCH[env]}/${stock.CFG.SEARCH.ENDPOINT}?${stock.CFG.SEARCH.SETID(importId)}`;
+  console.log(`Starting content IMPORT for ${importId}`);
+
+  // 1: Get total assets in gallery
+  const url = `${searchUrlbase}&result_columns[]=nb_results&result_columns[]=id`;
+  // define pagination commands
+  const pageParams = stock.CFG.SEARCH.PAGE_DEFAULT;
+  const assets = await stock.getAllResults({
+    url, token: '', env, model, pageParams,
+  });
+
+  // 2: load all assets in target gallery (100 per request) until finished
+  const assetLimit = 100;
+  if (assets.totalResults) {
+    const totalRequests = Math.ceil((assets.totalResults) / assetLimit);
+    const { totalData } = assets;
+    // keeps track of current request
+    let requestIdx = 1;
+    // array and index to temporarily populate with list of ~100 assets
+    let assetList = [];
+    let assetIdx = 0;
+    do {
+      // get first 100 assets and convert to flattened array of ids
+      assetList = totalData.slice(assetIdx, assetIdx + assetLimit).map((asset) => asset.id);
+      // if array is one item, convert to string else keep as array
+      const list = ((assetList.length > 1) ? assetList : assetList.toString());
+      const input = { id, contentIds: list };
+      // eslint-disable-next-line no-await-in-loop
+      const data = await stock.addContent(env, token, input);
+      // response should be 201 with contents of gallery--but not showing up here?
+      console.log(data);
+      assetIdx += assetLimit;
+      requestIdx += 1;
+    } while (totalRequests >= requestIdx);
+
+    // 3: notify UI that import is done, total added, and refresh gallery contents
+    return assets.totalResults;
+  }
+  // throw error if there is nothing to import
+  throw stock.http.parseErrors({ code: 200 });
 };
