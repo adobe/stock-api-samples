@@ -86,6 +86,14 @@ const Popup = (() => {
           ID: '#contentTable',
         },
         REFRESH: '#get-content',
+        FORM: {
+          ID: '#importGalleryForm',
+          // gallery ID to be imported
+          SOURCE: '#importGalleryId',
+          // selected gallery id and name
+          TARGET: '#selectedGalleryId',
+          TARGET_NAME: '#selectedGalleryName',
+        },
       },
       MODAL: {
         ID: '#modal',
@@ -153,6 +161,7 @@ const Popup = (() => {
       DIR: 'getContent',
       ADD: 'addContent',
       REM: 'removeContent',
+      IMP: 'importContent',
     },
     RESPONSE: {
       GET: 'getGalleriesResponse',
@@ -161,6 +170,7 @@ const Popup = (() => {
       DIR: 'getContentResponse',
       ADD: 'addContentResponse',
       REM: 'removeContentResponse',
+      IMP: 'importContentResponse',
       ERROR: 'Error',
     },
   };

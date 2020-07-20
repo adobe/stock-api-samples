@@ -29,6 +29,7 @@ $(document).ready(() => {
 
   // clone dynamic content
   const $galleryForm = $(K.UI.GALLERY.FORM.ID).clone();
+  const $importForm = $(K.UI.CONTENTS.FORM.ID).clone();
 
   // VIEW
   // -------------
@@ -109,8 +110,7 @@ $(document).ready(() => {
     ]);
     if (!(a && e)) {
       onOptionsNotSet();
-    }
-    else {
+    } else {
       successFunc();
     }
   };
@@ -137,13 +137,14 @@ $(document).ready(() => {
   // get confirmation
   const onApprovalNeeded = (ui, onConfirm, args = []) => {
     emptyModal();
+    // remove any pesky bindings
+    $(K.UI.MODAL.ID).off('hidden.bs.modal');
     const $consentForm = $(K.UI.CONSENT.ID).clone();
     $consentForm.find(K.UI.CONSENT.MSG).html(ui.msg);
     $(K.UI.MODAL.TITLE).text(ui.title);
     $(K.UI.MODAL.COLOR).addClass(ui.color);
     $(K.UI.MODAL.BODY).append($consentForm);
-    // opens modal
-    // $(K.UI.MODAL.ID).modal('show');
+    // opens modal after adding click handler
     $(K.UI.MODAL.ID).on('shown.bs.modal', () => $consentForm.on('submit', ((e) => {
       e.preventDefault();
       // remove form
@@ -152,6 +153,36 @@ $(document).ready(() => {
       toggleLoader(true);
       onConfirm(...args);
     }))).modal('show');
+  };
+
+  // import gallery form handler
+  const onImportFormSubmit = (e) => {
+    // override submit behavior
+    e.preventDefault();
+    // get form data and empty modal
+    const data = {
+      id: $(K.UI.CONTENTS.FORM.TARGET).val(),
+      importId: $(K.UI.CONTENTS.FORM.SOURCE).val(),
+    };
+    $importForm[0].reset();
+    emptyModal();
+    // closes modal before re-opening--only fires one time
+    $(K.UI.MODAL.ID).one('hidden.bs.modal', () => {
+      // get confirmation
+      const ui = {
+        msg: `Please confirm you want to import contents from ID&nbsp;<mark>${data.importId}</mark> to ID&nbsp;<mark>${data.id}</mark>. <br>This cannot be undone.`,
+        title: 'Are you sure?',
+        color: 'bg-warning',
+      };
+      onApprovalNeeded(ui, () => {
+        console.log('importing gallery...');
+        // send request
+        notify({
+          action: K.ACTION.IMP,
+          data,
+        });
+      });
+    }).modal('hide');
   };
 
   // delete gallery handler
@@ -245,6 +276,9 @@ $(document).ready(() => {
   // gallery form submission
   $galleryForm.on('submit', onGalleryFormSubmit);
 
+  // import gallery id submit
+  $importForm.on('submit', onImportFormSubmit);
+
   // refresh table size when tab is viewed
   $('a[data-toggle="tab"]').on('shown.bs.tab', () => {
     $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
@@ -273,6 +307,7 @@ $(document).ready(() => {
   });
 
   // common table options
+  // see https://datatables.net/manual/
   const dtConfig = {
     // scrollY: '95vh',
     // scrollCollapse: true,
@@ -354,12 +389,12 @@ $(document).ready(() => {
           onDeleteContent(data);
         },
       },
+      // exports data as CSV
       {
         extend: 'csv',
         text: 'Export CSV',
         filename: 'Adobe_Stock_Gallery_Content',
       },
-      // 'colvis',
     ],
     language: {
       emptyTable: 'Selected gallery is empty.',
@@ -406,12 +441,30 @@ $(document).ready(() => {
         },
       },
       {
+        // custom button to import existing gallery ID
+        // https://datatables.net/extensions/buttons/custom
         extend: 'csv',
         text: 'Export CSV',
         filename: 'Adobe_Stock_Gallery_List',
       },
-      // 'copy',
-      // 'colvis',
+      {
+        extend: 'selected',
+        text: 'Import Gallery ID',
+        action: (e, gt) => {
+          emptyModal();
+          const row = gt.rows({ selected: true }).data()[0];
+          const data = arrayToObj(K.DATA.getGalleriesResponse.MAP, row);
+          console.log('selected', data);
+          // inserts form content in modal
+          $(K.UI.MODAL.TITLE).text('Import gallery contents');
+          $(K.UI.MODAL.BODY).append($importForm);
+          // inserts text of selected gallery
+          $(K.UI.CONTENTS.FORM.TARGET_NAME).val(data.name);
+          $(K.UI.CONTENTS.FORM.TARGET).val(data.id);
+          // opens modal
+          $(K.UI.MODAL.ID).modal('show');
+        },
+      },
     ],
   });
 
@@ -441,7 +494,7 @@ $(document).ready(() => {
     if (message.target && message.target === K.TARGET.P) {
       const { data, status } = message;
       const {
-        GET, NEW, DEL, DIR, ADD, REM, ERROR,
+        GET, NEW, DEL, DIR, ADD, REM, ERROR, IMP,
       } = K.RESPONSE;
       switch (status) {
         case GET:
@@ -505,6 +558,18 @@ $(document).ready(() => {
         case REM:
           $ct.rows().deselect();
           onContentRefreshClick();
+          break;
+        case IMP:
+          // dismiss modal
+          toggleLoader(false);
+          // eslint-disable-next-line no-case-declarations
+          let msg;
+          if (data) {
+            msg = `${data} images imported.`;
+          } else {
+            msg = 'Nothing imported.';
+          }
+          showAlert(msg, K.UI.ALERT.SUCCESS);
           break;
         case ERROR:
           // dismiss modal
