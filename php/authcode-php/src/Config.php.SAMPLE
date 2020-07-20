@@ -1,0 +1,24 @@
+<?php
+
+namespace IMS;
+
+# config variables for auth code script
+# IMPORTANT: Populate values from Adobe.io and rename file as Config.php
+class Config
+{
+    private $REDIRECT_URI; # populated using a getter
+    public $API_KEY = ''; # Get from Adobe.io
+    public $SECRET = ''; # Get from Adobe.io
+    public $API_APPNAME = ''; # Ex: 'mywebsite.com/1.0'
+    public $SCOPES = 'openid,creative_sdk';
+    public $IMS_HOSTNAME = 'ims-na1.adobelogin.com';
+    public $API_HOSTNAME = 'stock.adobe.io';
+
+    public function __get($name)
+    {
+        if ($name === 'REDIRECT_URI') {
+            $this->REDIRECT_URI = 'https://' . $_SERVER['SERVER_NAME'] . Utils::get_base_path() . '/auth/token';
+            return $this->REDIRECT_URI;
+        }
+    }
+}

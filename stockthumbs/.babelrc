@@ -1,0 +1,14 @@
+{
+  "presets": [["@babel/preset-env", {
+    "targets": {
+      "node": "10"
+    },
+    "modules": false
+  }]],
+  "minified": true,
+  "comments": false,
+  "plugins": [
+    "transform-remove-console"
+  ],
+  "sourceMaps": true
+}
