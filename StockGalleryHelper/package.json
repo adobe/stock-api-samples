@@ -1,11 +1,11 @@
 {
   "name": "stockgalleryhelper",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Use to manage Adobe Stock galleries",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "git archive --format=zip HEAD:src/ -o $npm_package_name-$npm_package_version.zip"
+    "package": "cross-var 7z a -tzip $npm_package_name-$npm_package_version.zip ./src/*"
   },
   "repository": {
     "type": "git",
@@ -14,6 +14,7 @@
   "author": "cfsmith@adobe.com",
   "license": "Apache-2.0",
   "devDependencies": {
+    "cross-var-no-babel": "^1.2.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.0"
