@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2017 Adobe Systems Incorporated. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+-->
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>IMS authcode login demo</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+
+<body>
+  <h1>IMS authorization code login demo</h1>
+  <h2>Step 1: Sign in</h2>
+  <button id="csdk-login">Log into Creative Cloud</button>
+  <button id="csdk-logout">Log out of Creative Cloud</button>
+  <p>
+    Login status: <span id="status">Unknown</span>
+  </p>
+  <p>&nbsp;</p>
+  <h2>Step 2: Access protected resource</h2>
+  <p>
+    <label for="get-quota">Stock Member/Profile API</label>
+    <button id="get-quota">Get quota</button>
+  </p>
+  <p>
+    Stock quota: <span id="quota">N/A</span>
+  </p>
+
+  <!-- Main script -->
+  <script type="text/javascript" src="login-authcode.js"></script>
+</body>
+</html>

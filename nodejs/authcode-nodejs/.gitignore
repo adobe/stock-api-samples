@@ -1,0 +1,9 @@
+# Ignore
+node_modules/
+server/config.json
+server/ssl/*.crt
+server/ssl/*.key
+
+# Allow
+!server\ssl\server.crt
+!server\ssl\server.key

@@ -10,3 +10,5 @@ tests/
 ProdConfigCFS.properties
 php/authcode-php/.vscode/launch.json
 router.log
+*.json
+nodejs/authcode-nodejs/server/authcode_server_2017.js
