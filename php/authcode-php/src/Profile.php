@@ -31,8 +31,8 @@ namespace IMS {
           $n = $_COOKIE['displayName'];
           $name = ($n !== '') ? $n : 'Profile name not available.';
           echo json_encode(['name' => $name]);
-        } catch (Exception $err) {
-          Utils::debug($err, 'getName error');
+        } catch (\Exception $err) {
+          Utils::debug($err, 'ERROR');
           $msg = 'Profile name not available. Make sure user is signed in.';
           http_response_code(401);
           echo json_encode($msg);

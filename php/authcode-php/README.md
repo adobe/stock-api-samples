@@ -3,17 +3,19 @@
 ## Contents
 <!-- MarkdownTOC levels="1,2,3" autolink="true" -->
 
-- [Requirements](#requirements)
-- [Sample code structure](#sample-code-structure)
-- [Installation](#installation)
+- [Adobe IMS auth code sample code (PHP)](#adobe-ims-auth-code-sample-code-php)
+  - [Contents](#contents)
+  - [Requirements](#requirements)
+  - [Sample code structure](#sample-code-structure)
+  - [Installation](#installation)
     - [Creating an API Key](#creating-an-api-key)
-    - [Creating a Self-Signed Certificate](#creating-a-self-signed-certificate)
-- [Using the sample app](#using-the-sample-app)
+    - [<a name="creating-cert"></a>Creating a Self-Signed Certificate](#creating-a-self-signed-certificate)
+  - [Using the sample app](#using-the-sample-app)
     - [Logging in](#logging-in)
     - [Accessing a protected API](#accessing-a-protected-api)
     - [Logging out](#logging-out)
-- [Contributing](#contributing)
-- [Licensing](#licensing)
+  - [Contributing](#contributing)
+  - [Licensing](#licensing)
 
 <!-- /MarkdownTOC -->
 
@@ -122,7 +124,7 @@ GET /auth/signin HTTP/1.1
 Host: localhost:8443
 
 HTTP/1.1 302 Found
-Location: https://ims-na1.adobelogin.com/ims/authorize
+Location: https://ims-na1.adobelogin.com/ims/authorize/v2
   ?client_id=3a67c...
   &redirect_uri=https://localhost:8443/auth/token
   &scope=openid,creative_sdk
@@ -146,7 +148,7 @@ The local redirect endpoint is `/auth/token`. Because this same endpoint is call
 4. Once IMS has redirected back to your endpoint with the auth code, the server POSTs the code to `/ims/token` to receive an access token and a refresh token. This request is sent as a form, with the client ID, secret and auth code in the body as parameters.
 
 ```http
-POST /ims/token HTTP/1.1
+POST /ims/token/v3 HTTP/1.1
 Host: ims-na1.adobelogin.com
 Content-Type: application/x-www-form-urlencoded
   grant_type=authorization_code

@@ -8,3 +8,5 @@ php/src/Config/AppConfigCFS*
 *.jpeg
 tests/
 ProdConfigCFS.properties
+php/authcode-php/.vscode/launch.json
+router.log
