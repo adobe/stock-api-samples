@@ -207,8 +207,8 @@ class Background {
       console.log(response);
       return response;
     } catch (e) {
-      // return either a JS error message or internal error string
-      return (e.message || e);
+      // throw original error message
+      throw (e.message || e);
     }
   }
 }
@@ -257,7 +257,7 @@ async function onGalleryReady(input) {
   }
 }
 
-// execute service workflows initiated by 'action' message
+// execute service workflows initiated by 'action' message, using message data as input
 function actionHandler(msg) {
   // store data object to send to service
   const input = msg.data;

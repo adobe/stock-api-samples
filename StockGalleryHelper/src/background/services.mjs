@@ -62,6 +62,9 @@ stock.http = {
       case 404:
         msg = 'There is a problem with the URL.';
         break;
+      case 403003:
+        msg = 'The API key is invalid.';
+        break;
       case 999:
         msg = 'Access token not found. Please reload Stock page and re-open extension.';
         break;
@@ -206,13 +209,16 @@ stock.getGalleries = async (env, token, ...args) => {
 stock.getContent = async (env, token, gallery, model) => {
   // const url = chrome.runtime.getURL('/background/other/getcontent_large1.json');
   const url = `${stock.CFG.URL[env]}/${gallery.id}`;
+  // STK-63032: Store count from gallery row and send back as total
+  const { count } = gallery; // STK-63032: Added
   // define pagination commands
   const pageParams = stock.CFG.PAGE_DEFAULT;
   const data = await stock.getAllResults({
     url, env, token, model, pageParams,
   });
   return {
-    [model.COUNT]: data.totalResults,
+    // [model.COUNT]: data.totalResults, // STK-63032 line replaced
+    [model.COUNT]: count, // STK-63032
     [model.BASE]: data.totalData,
   };
 };
