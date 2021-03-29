@@ -229,6 +229,8 @@ $(document).ready(() => {
 
   // handles refresh of gallery content
   // could be triggered by button or link click
+  // STK-63032: Also sends total count as workaround
+  // { name: "Fall Leaves", nb_media: 440, id: "1QdJ0awtLWxEwyrTC7OTmrEfyzsWt3Rk" }
   const refreshContents = ((row) => {
     emptyModal();
     toggleLoader(true);
@@ -237,6 +239,7 @@ $(document).ready(() => {
       data: {
         id: row.id,
         name: row.name,
+        count: row.nb_media, // STK-63032 inserted
       },
     });
   });
@@ -515,13 +518,13 @@ $(document).ready(() => {
           }, 1500);
           break;
         }
-        case DEL:
+        case DEL: // Gallery deleted
           $gt.rows().deselect();
           setStatus(K.UI.STATUS.STATE.RESET);
           // refresh gallery list
           checkOptionsNotSet(onGalleryRefresh);
           break;
-        case DIR: {
+        case DIR: { // Gallery directory/listing
           // reverse data order
           if (data.files) {
             data.files.reverse();
@@ -555,11 +558,11 @@ $(document).ready(() => {
           showAlert(msg, K.UI.ALERT.SUCCESS);
           break;
         }
-        case REM:
+        case REM: // Content removed
           $ct.rows().deselect();
           onContentRefreshClick();
           break;
-        case IMP:
+        case IMP: // Gallery imported
           // dismiss modal
           toggleLoader(false);
           // eslint-disable-next-line no-case-declarations

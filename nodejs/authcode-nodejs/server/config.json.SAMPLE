@@ -1,0 +1,11 @@
+{
+  "API_KEY": "your-api-key-here",
+  "SECRET": "your-client-secret-here",
+  "API_APPNAME": "MySampleApp/1.0",
+  "SCOPES": "openid,creative_sdk",
+  "REDIRECT_URI": "https://localhost:8443/auth/token",
+  "IMS_HOSTNAME": "ims-na1.adobelogin.com",
+  "API_HOSTNAME": "stock.adobe.io",
+  "SERVER_KEY": "ssl/server.key",
+  "SERVER_CERT": "ssl/server.crt"
+}
