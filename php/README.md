@@ -164,7 +164,7 @@ Or missing dependencies (didn't run `composer install`), etc.
 ## Notes
 All samples are annotated with comments, but email stockapis@adobe.com if you have questions, and refer to the [API docs](https://www.adobe.io/apis/creativecloud/stock/docs/getting-started.html) if in doubt.
 
-The license example uses a demo class found in `/src/Utils/ImsToken.php` which is used to generate the access token from a service account. This functionality is not part of the SDK, so it was included here as a courtesy. It uses [firebase/jwt](https://www.adobe.io/apis/creativecloud/stock/docs/getting-started.html) to create the JSON web token, and [Guzzle 6](http://docs.guzzlephp.org/en/stable/) to fetch the token from IMS.
+The license example uses a demo class found in `/src/Utils/ImsToken.php` which is used to generate the access token from a service account. This functionality is not part of the SDK, so it was included here as a courtesy. It uses [firebase/jwt](https://github.com/firebase/php-jwt) to create the JSON web token, and [Guzzle 6](http://docs.guzzlephp.org/en/stable/) to fetch the token from IMS.
 
 Guzzle is also required as part of the SDK, and is used in the license example to download the file.
 
