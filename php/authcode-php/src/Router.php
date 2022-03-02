@@ -2,14 +2,33 @@
 
 namespace { # global namespace
 
-    session_start(); // tracks referer
+use IMS\Utils;
 
-    #composer class loader
+#composer class loader
     require realpath(__DIR__) . '/../vendor/autoload.php';
 
-    # catch errors in console
-    $console_handler = PhpConsole\Handler::getInstance();
-    $console_handler->start();
+    # example from https://www.php.net/manual/en/function.session-status.php#123404
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+       # reset logs
+       Utils::clearLog();
+       # set session cookie name
+       session_name(IMS\Constants::$SVARS['NAME']);
+       # sets default session cookie options
+       $arr_cookie_options = [
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => $_SERVER['SERVER_NAME'], 
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'None' // None || Lax  || Strict
+       ];
+       session_set_cookie_params($arr_cookie_options);
+       session_start();
+       Utils::getCSRF();
+    }
+
+    # register Chrome logger
+    $CONSOLE = \ChromePhp::getInstance();
 
     # include config vars
     # require './auth_config.php';
@@ -67,20 +86,57 @@ namespace IMS {
                 $this->query_params = array();
             }
 
-            # Check if endpoint is registered, and create object
-            if (array_key_exists($this->routes[0], self::$endpoints)) {
-                $auth_type = self::$endpoints[$this->routes[0]];
-                Utils::debug('Routing to ' . $auth_type, 'auth_type');
-                # Create instance of route handler (AuthCode or Profile)
-                $ims = new $auth_type($this->routes, $this->query_params);
-            } elseif ($this->routes[0] == '') {
+            # Check if endpoint is registered, and create object to handle it
+            $dest = $this->routes[0];
+            if (array_key_exists($dest, self::$endpoints)) {
+                try {
+                    # check if csrf is in header and if so, add to query params
+                    $csrfKey = Constants::$SVARS['CSRF'];
+                    # get csrf value and cast to string if not null
+                    if (isset(getallheaders()[$csrfKey])) {
+                        $csrf = (trim(strtolower(strval(getallheaders()[$csrfKey]))));
+                    }
+                    # add as query param if it is not null
+                    if (!empty($csrf) && ctype_alnum($csrf) && $csrf !== 'null') {
+                        $this->query_params[$csrfKey] = $csrf;
+                    }
+
+                    # TODO: Relocate this logic to Utils, and only call on some endpoints
+                    # check for csrf value and validate before allowing to continue to protected routes
+                    /*
+                    $csrfKey = Constants::$SVARS['CSRF'];
+                    if (array_key_exists($csrfKey, $this->query_params)) {
+                        $checkCode = $this->query_params[$csrfKey];
+                    } else {
+                        # throw exception
+                        $checkCode = null;
+                    }
+                    Utils::checkCSRF($checkCode, $this->query_params);
+                    */
+                    $auth_type = self::$endpoints[$dest];
+                    Utils::debug('Routing to ' . $auth_type, 'auth_type');
+                    # Create instance of route handler (AuthCode or Profile)
+                    new $auth_type($this->routes, $this->query_params);
+                } catch (\Exception $err) {
+                    Utils::debug($err->getMessage(), 'ERROR');
+                    # sign out user in ui and remove data
+                    # TODO: Fix this:
+                    #   Currently signing out with every request because of csrf
+                    #   If login is called, need to start new session
+                    #   If token is called, check if from IMS and skip csrf
+                    # see https://www.oauth.com/oauth2-servers/signing-in-with-google/authorization-request/
+                    #
+                    Utils::doLogout();
+                }
+            } elseif ($dest == '') {
                 # redirect to index if route is blank
-                header('Location: ./index.php');
+                Utils::redirect('./index.php', null);
             } else {
+                http_response_code(404);
                 header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found");
-                $msg = 'Page not found.';
-                echo "<pre>$msg</pre>";
-                throw new \Exception($msg);
+                $msg = '<h1>404</h1><p>Page not found.</p>';
+                echo $msg;
+                Utils::debug($this->routes, 'ERROR');
                 exit();
             }
         }

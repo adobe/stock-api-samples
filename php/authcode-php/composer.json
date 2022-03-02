@@ -3,8 +3,8 @@
     "description": "Auth code sample for PHP",
     "license": "Apache-2.0",
     "require": {
-        "php-console/php-console": "^3.1",
-        "guzzlehttp/guzzle": "~6.0"
+        "guzzlehttp/guzzle": "~6.0",
+        "ccampbell/chromephp": "^4.1"
     },
     "require-dev": {
         "phpmd/phpmd" : "@stable"

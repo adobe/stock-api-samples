@@ -2,28 +2,48 @@
 
 namespace IMS {
 
-    class AuthCode
+use Exception;
+
+class AuthCode
     {
 
         public function __construct($routes, $params)
         {
-            $endpoint = (count($routes) > 1) ? $endpoint = $routes[1] : $routes[0];
-            switch ($endpoint) {
-                case 'signin':
-                    Utils::debug('Called /signin', 'endpoint');
-                    $this->login();
-                    break;
-                case 'token':
-                    Utils::debug('Called /token', 'endpoint');
-                    $this->token($params);
-                    break;
-                case 'signout':
-                    Utils::debug('Called /signout', 'endpoint');
-                    $this->logout();
-                    break;
-                default:
-                    Utils::debug('Called something else', 'endpoint');
-                    break;
+            try {
+                $endpoint = (count($routes) > 1) ? $endpoint = $routes[1] : $routes[0];
+                # add csrf check here and in profile class
+                # https://chasingcode.dev/blog/php-handle-undefined-index-gracefully/
+                $csrf = $params[Constants::$SVARS['CSRF']] ?? null;
+                switch ($endpoint) {
+                    case 'signin':
+                        // TODO: Test that page still gets csrf by reloading before signing in, implement state= param below
+                        Utils::debug('Called /signin', 'endpoint');
+                        $this->login($params);
+                        break;
+                    case 'token':
+                        Utils::debug('Called /token', 'endpoint');
+                        $this->token($params);
+                        break;
+                    case 'renew':
+                        Utils::debug('Called /renew', 'endpoint');
+                        $this->renew($csrf);
+                        break;
+                    case 'signout':
+                        Utils::debug('Called /signout', 'endpoint');
+                        $this->logout();
+                        break;
+                    default:
+                        # throws exception if csrf is invalid
+                        Utils::checkCSRF($csrf);
+                        Utils::debug('Called something else', 'endpoint');
+                        break;
+                }
+            } catch (\ValueError $err) {
+                # thrown by checkCSRF
+                Utils::debug($err, "ERROR");
+            } catch (\Exception $err) {
+                # thrown elsewhere
+                Utils::debug($err, "ERROR");
             }
         }
 
@@ -31,27 +51,39 @@ namespace IMS {
         #  2. It redirects to ims/authorize
         #  required params: client_id (api key), scope, response_type, redirect_uri
         #
-        private function login()
+        private function login($params)
         {
             $CFG = $GLOBALS['AUTH_CONFIG'];
-            # add api key and redirect URI to query string
-            $redirect = $CFG->REDIRECT_URI;
-            Utils::debug($redirect, 'redirect URI');
-            $query = sprintf('client_id=%s&redirect_uri=%s', $CFG->API_KEY, $redirect);
-            # add scopes and response type to query string
-            $query .= sprintf('&scope=%s&response_type=code', $CFG->SCOPES);
-            # store referer path (original sign-in page) for later use
-            $basepath = Utils::get_base_path();
-            $refer = (array_key_exists('HTTP_REFERER', $_SERVER)) ? Utils::get_referer($_SERVER['HTTP_REFERER']) : $basepath . '/public/login-authcode.html';
-            if (!isset($_SESSION['refer'])) {
-                $_SESSION['refer'] = $refer;
+            $endpoints = Constants::$ENDPOINTS;
+            $svars = Constants::$SVARS;
+
+            $state = $params[$svars['STATE']] ?? null;
+            # client must set state param before signing in
+            if (isset($state) && !empty($state)) {
+                $redirect = $CFG->REDIRECT_URI;
+                Utils::debug($redirect, 'redirect URI');
+                # add api key and redirect URI to query string
+                $query = "client_id={$CFG->API_KEY}&redirect_uri={$redirect}";
+                # add scopes, state and response type to query string
+                $query .= "&scope={$CFG->SCOPES}&state={$state}&response_type=code";
+                # store referer path (original sign-in page) for later use
+                $basepath = Utils::get_base_path();
+                $refer = (array_key_exists('HTTP_REFERER', $_SERVER)) ? Utils::get_referer($_SERVER['HTTP_REFERER']) : $basepath . '/www/login-authcode.html';
+                if (!isset($_SESSION[$svars['REFER']])) {
+                    $_SESSION[$svars['REFER']] = $refer;
+                } else {
+                    $refer = $_SESSION[$svars['REFER']];
+                }
+                Utils::debug($refer, 'http referer');
+                # redirect to authorize
+                $ims_url = "https://{$CFG->IMS_HOSTNAME}/{$endpoints['SIGNIN']}?$query";
+                Utils::redirect($ims_url, $query);
             } else {
-                $refer = $_SESSION['refer'];
+                $msg = 'No state parameter found.';
+                Utils::debug($msg, "ERROR");
+                Utils::respond($msg, 406);
             }
-            Utils::debug($refer, 'referer');
-            # redirect to authorize
-            $ims_url = "https://$CFG->IMS_HOSTNAME/ims/authorize/v2?$query";
-            Utils::redirect("https://$CFG->IMS_HOSTNAME/ims/authorize/v2", $query);
+
         }
 
         #  Redirect URI endpoint
@@ -65,44 +97,40 @@ namespace IMS {
         private function token($params)
         {
             $redirect_count = 0;
+            $svars = Constants::$SVARS;
             if (isset($params['code'])) {
                 # if code= param exists, this is a sign-in event
                 $code = $params['code'];
                 # get token response
-                $data = $this->requestImsToken($code);
-                Utils::debug($data, 'token response');
-                # save token and profile data to cookie
-                $session = [
-                    'access_token' => $data->access_token,
-                    'expires' => $data->expires_in / 1000, # convert ms to seconds
-                    'displayName' => $data->name,
-                ];
-                # get refresh token if it is available
-                $session['refresh_token'] = isset($data->refresh_token) ? $data->refresh_token : null;
-                $session['account_type'] = isset($data->account_type) ? $data->account_type : null;
-
-                foreach ($session as $key => $val) {
-                    # setcookie: name, value, expires, path on server, domain, secure, http-only
-                    # https://stackoverflow.com/a/33277534 set path as '/'
-                    setcookie($key, $val, time() + $session['expires'], '/', $_SERVER['SERVER_NAME'], true, true);
+                try {
+                    $data = $this->requestImsToken($code);
+                    Utils::debug($data, 'token response');
+                    # save token and profile data to cookie AND session
+                    $session = [
+                        $svars['ACCESS'] => $data->access_token,
+                        $svars['EXPIRES'] => time() + $data->expires_in,
+                    ];
+                    
+                    # store in session data
+                    foreach ($session as $key => $val) {
+                        Utils::makeCookie($key, $val, $session[$svars['EXPIRES']]);
+                        $_SESSION[$key] = $val;
+                    }
+                    Utils::debug($_COOKIE, 'setcookie');
+                    
+                    # success: now redirect back to login page
+                    $this->handleLogin();
+                } catch (\Exception $err) {
+                    # problem getting token from code
+                    Utils::debug($err, 'ERROR');
                 }
-                // Utils::debug($_COOKIE, 'setcookie');
-                # now redirect back to login page
-                $refer = (isset($_SESSION['refer'])) ? $_SESSION['refer'] : null;
-                $redirect_count++;
-                # to prevent infinite redirect in case something goes wrong
-                if ($redirect_count > 4) {
-                    Utils::debug('too many redirects', 'exiting');
-                    exit;
-                }
-                Utils::redirect($refer, 'signed_in=true');
             } elseif (isset($params['error'])) {
                 # check if redirect includes an error message and throw exception
                 $msg = $params['error'];
                 $ex = new \Exception($msg);
                 # throw $ex;
                 Utils::debug($ex, 'ERROR');
-                $refer = (isset($_SESSION['refer'])) ? $_SESSION['refer'] : null;
+                $refer = (isset($_SESSION[$svars['REFER']])) ? $_SESSION[$svars['REFER']] : null;
                 Utils::redirect($refer, 'signed_in=false');
             } else {
                 # signout event: destroy cookie
@@ -111,10 +139,23 @@ namespace IMS {
                 if ($redirect_count > 4) {
                     exit;
                 }
-                $refer = (isset($_SESSION['refer'])) ? $_SESSION['refer'] : null;
+                $refer = (isset($_SESSION[$svars['REFER']])) ? $_SESSION[$svars['REFER']] : null;
                 Utils::clearCookies();
                 Utils::redirect($refer, 'signed_in=false');
             }
+        }
+
+        private function handleLogin() {
+            $redirect_count = 0;
+            $svars = Constants::$SVARS;
+            $refer = (isset($_SESSION[$svars['REFER']])) ? $_SESSION[$svars['REFER']] : null;
+            $redirect_count++;
+            # to prevent infinite redirect in case something goes wrong
+            if ($redirect_count > 4) {
+                Utils::debug('too many redirects', 'exiting');
+                exit;
+            }
+            Utils::redirect($refer, 'signed_in=true');
         }
 
         #  4. App POSTs auth code to IMS to get back token
@@ -124,6 +165,7 @@ namespace IMS {
         private function requestImsToken($auth_code)
         {
             $CFG = $GLOBALS['AUTH_CONFIG'];
+            $endpoints = Constants::$ENDPOINTS;
             $requestForm = [
                 'grant_type' => 'authorization_code',
                 'client_id' => $CFG->API_KEY,
@@ -132,7 +174,7 @@ namespace IMS {
             ];
             $reqOptions = (object)[
                 'hostname' => $CFG->IMS_HOSTNAME,
-                'path' => '/ims/token',
+                'path' => $endpoints['TOKEN'],
                 'method' => 'POST',
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
@@ -144,12 +186,53 @@ namespace IMS {
             return Utils::http_request($reqOptions);
         }
 
+        # Checks session if token hasn't expired and returns it
+        #
+        private function renew($csrf)
+        {
+            $svars = Constants::$SVARS;
+            if (isset($_SESSION[$svars['ACCESS']])) {
+                try {
+                    # throws exception if csrf is invalid
+                    Utils::checkCSRF($csrf);
+                    $remain = 0;
+                    $now = time();
+                    $tokenExpiry = $_SESSION[$svars['EXPIRES']];
+                    if ($now <= $tokenExpiry) {
+                        $remain = $tokenExpiry - $now;
+                        Utils::debug("Access token good for {$remain}", 'renew');
+                        Utils::respond($remain);
+                    } else {
+                        $msg = 'Token expiration not available. User should sign in again.';
+                        Utils::respond($msg, 401);
+                        exit;
+                    }
+                } catch (\ValueError $err) {
+                    # thrown by checkCSRF
+                    Utils::debug($err, 'ERROR');
+                    Utils::respond('Problem renewing--refresh the page and try again.', 403);
+                    exit;
+                } catch (\Exception $err) {
+                    # thrown elsewhere
+                    Utils::debug($err, 'ERROR');
+                    Utils::respond('Something happened on the way to renew.', 403);
+                    exit;
+                }
+            } else {
+                $msg = 'User not signed in.';
+                Utils::respond($msg, 401);
+                exit;
+            }
+        }
+
         private function logout()
         {
             $CFG = $GLOBALS['AUTH_CONFIG'];
-            if (isset($_COOKIE['access_token'])) {
+            $svars = Constants::$SVARS;
+            $endpoints = Constants::$ENDPOINTS;
+            if (isset($_SESSION[$svars['ACCESS']])) {
                 # get token from cookie
-                $token = $_COOKIE['access_token'];
+                $token = $_SESSION['access_token'];
                 $signout_options = [
                     'access_token' => $token,
                     'redirect_uri' => $CFG->REDIRECT_URI,
@@ -161,17 +244,10 @@ namespace IMS {
                 } else {
                     $refer = $_SESSION['refer'];
                 }
-                Utils::redirect("https://$CFG->IMS_HOSTNAME/ims/logout", http_build_query($signout_options));
+                Utils::redirect("https://{$CFG->IMS_HOSTNAME}/{$endpoints['SIGNOUT']}", http_build_query($signout_options));
             } else {
                 # already signed out--redirect back to client app
-                $refer = (array_key_exists('HTTP_REFERER', $_SERVER)) ? Utils::get_referer($_SERVER['HTTP_REFERER']) : null;
-                if (!isset($_SESSION['refer'])) {
-                    $_SESSION['refer'] = $refer;
-                } else {
-                    $refer = $_SESSION['refer'];
-                }
-                Utils::clearCookies();
-                Utils::redirect($refer, 'signed_in=false');
+                Utils::doLogout();
             }
         }
     }

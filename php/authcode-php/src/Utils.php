@@ -4,6 +4,83 @@ namespace IMS {
 
     class Utils
     {
+        private static $logPathRoot = '/../logs/router_~ID~.log';
+
+        # returns unique log file name for that session
+        protected static function getLogPath()
+        {
+            $lp = self::$logPathRoot;
+            # add session name to log file
+            $lp = str_replace('~ID~', session_id(), self::$logPathRoot);
+            return $lp;
+        }
+
+        # generate csrf token to verify Ajax requests
+        public static function getCSRF()
+        {
+            $csrfKey = Constants::$SVARS['CSRF'];
+            # Check if a token is present for the current session
+            if (!isset($_SESSION[$csrfKey])) {
+                # No token present, generate a new one
+                $token = bin2hex(random_bytes(64));
+                # This value is added to response headers
+                $_SESSION[$csrfKey] = $token;
+            } else {
+                # Reuse the token
+                $token = $_SESSION[$csrfKey];
+            }
+            return $token;
+        }
+
+        # validates csrf
+        public static function checkCSRF($code, $params = null)
+        {
+            $csrfKey = Constants::$SVARS['CSRF'];
+            if (!is_null($code) && hash_equals($_SESSION[$csrfKey], $code)) {
+                return true;
+            } else {
+                $ex = new \ValueError('CSRF token value does not match');
+                Utils::debug($ex, 'ERROR');
+                throw $ex;
+            }
+        }
+
+        # cookie handling
+        # clears session data and cookie storage
+        public static function clearCookies()
+        {
+            # remove cookies
+            foreach ($_COOKIE as $key => $val) {
+                Utils::makeCookie($key, '', time() - 10000);
+                Utils::debug("clearing cookie $key", 'logout');
+            }
+            # reset session vars
+            session_destroy();
+            /*
+            $svars = Constants::$SVARS;
+            foreach(array_keys($svars) as $key) {
+                unset($_SESSION[$key]);
+            }
+            */
+        }
+
+        # stores cookie values
+        public static function makeCookie($key, $val, $exp)
+        {
+            # setting samesite option as recommended
+            # https://www.php.net/manual/en/function.setcookie.php#125242
+            $arr_cookie_options = array(
+                'expires' => $exp,
+                'path' => '/',
+                'domain' => $_SERVER['SERVER_NAME'],
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => 'None' // None || Lax  || Strict
+            );
+            setcookie($key, $val, $arr_cookie_options);
+            # update COOKIE array
+            $_COOKIE[$key] = $val;
+        }
 
         #  get_current_uri strips the script name from URL
         #  ex: https://local.cfsdemos.com/stock/adobe.io/auth/token?code=12345
@@ -84,72 +161,130 @@ namespace IMS {
                 ];
                 $options['verify'] = false;
             }
+            try {
+                # now add options and send request
+                $response = $client->request($opt->method, $opt->path, $options);
 
-            # now add options and send request
-            $response = $client->request($opt->method, $opt->path, $options);
+                # check if an error is thrown
+                $status = $response->getStatusCode();
+                # get data from response and cast to string
+                $data = (string)$response->getBody();
 
-            # check if an error is thrown
-            $status = $response->getStatusCode();
-            # get data from response and cast to string
-            $data = (string)$response->getBody();
-
-            if ($status >= 400) {
-                $msg = "$status $response->getReasonPhrase";
-                $body = json_decode($data);
-                Utils::debug($body, 'ERROR');
-                throw new \Exception($msg);
-                # is it fatal? 
-                # exit();
+                if ($status >= 400) {
+                    $msg = "$status $response->getReasonPhrase";
+                    $body = json_decode($data);
+                    Utils::debug($body, 'ERROR');
+                    throw new \Exception($msg);
+                    # is it fatal? 
+                    # exit();
+                }
+                # assuming response is JSON
+                return json_decode($data);
+            } catch (\GuzzleHttp\Exception\ClientException $err) {
+                self::debug($err, 'ERROR');
+                throw new \Exception($err);
             }
-            # assuming response is JSON
-            return json_decode($data);
         }
 
-        public static function clearCookies()
+        # Ajax response handler
+        public static function respond($msg, $status = 200)
         {
-            # reset session
-            $_SESSION['refer'] = null;
-            # remove cookies
-            foreach ($_COOKIE as $key => $val) {
-                setcookie($key, '', time() - 10000, '/', $_SERVER['SERVER_NAME'], true, true);
-                Utils::debug("clearing cookie $key", 'logout');
+            $svars = Constants::$SVARS;
+            $csrf = self::getCSRF();
+            # refresh cookies to client
+            foreach ($_SESSION as $key => $val) {
+                if (!empty($val)) {
+                    Utils::makeCookie($key, $val, '');
+                }
+            }
+            header('Content-type:application/json;charset=utf-8');
+            header("{$svars['CSRF']}: {$csrf}");
+            http_response_code($status);
+            if ($status >= 400) {
+                echo json_encode([
+                    'name' => 'ApplicationError',
+                    'message' => $msg,
+                    'code' => $status,
+                ]);
+            } else {
+                echo json_encode($msg);
             }
         }
 
+        # serves traffic to referer or outside destinations
         public static function redirect($url, $query)
         {
             $url .= (strstr($url, '?')) ? '&' : '?';
             $url .= $query;
             Utils::debug("redirecting: $url", 'redirect');
+            # add csrf to header
+            $csrfKey = Constants::$SVARS['CSRF'];
+            $csrf = self::getCSRF();
+            header("{$csrfKey}: {$csrf}");
             header("Location: $url");
             exit();
+        }
+
+        public static function clearLog()
+        {
+            $logPath = self::getLogPath();
+            # does file exist and is writeable
+            if (is_writable($logPath)) {
+                unlink($logPath);
+            }
+        }
+
+        # resets session data and reloads login page
+        public static function doLogout()
+        {
+            $refer = (array_key_exists('HTTP_REFERER', $_SERVER)) ? Utils::get_referer($_SERVER['HTTP_REFERER']) : null;
+            if (!isset($_SESSION['refer'])) {
+                $_SESSION['refer'] = $refer;
+            } else {
+                $refer = $_SESSION['refer'];
+            }
+            self::clearCookies();
+            self::redirect($refer, 'signed_in=false');
         }
 
         public static function debug($data, $tag = null)
         {
             # get backtrace 2 levels deep
-            $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
             # extract class and line number of last function called
             $class = $bt[1]['class'];
-            $line = $bt[1]['line'];
+            $line = $bt[0]['line'];
             $tags = ($tag) ? "$class:$line:$tag" : '';
 
-            $console = \PhpConsole\Handler::getInstance();
-            
+            $console = $GLOBALS['CONSOLE'];
+
             # check if tag is "ERROR" and notify console
             if ($tag === 'ERROR') {
                 # methods: https://github.com/barbushin/php-console/blob/master/src/PhpConsole/Handler.php
-                $console->handleException($data, $tags);
+                $style = 'color: white; background: red';
+                $msg = "%c{$tags}";
+                $console::group($msg, $style);
+                $console::error($data);
+                $console::groupEnd($msg);
             } else {
                 # call browser console debugging
-                $console->debug($data, $tags);
+                $style = 'color: white; background: blue';
+                $msg = "%c{$tags}";
+                $console::group($msg, $style);
+                $console::log($data);
+                $console::groupEnd($msg);
             }
 
             # get date and format for log file
             date_default_timezone_set('America/Los_Angeles');
             $ts = print_r(date(DATE_RFC2822), true);
             $output = print_r($data, true);
-            $logfile = realpath(__DIR__) . '/../logs/router.log';
+            # create log file if it doesn't exist
+            # https://stackoverflow.com/a/62624579
+            $logfile = realpath(__DIR__) . self::getLogPath();
+            if (!file_exists($logfile)) {
+                touch($logfile);
+            }
             # send to log
             error_log("\n[$ts]\n$tags\n" . $output . "\n", 3, $logfile);
         }

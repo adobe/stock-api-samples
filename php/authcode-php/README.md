@@ -160,13 +160,11 @@ HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
 {
     "access_token": "eyJ4NXU...qOk8-DA",
-    "refresh_token": "eyJ4NXU...ZoQP_5A",
-    "name": "Adam Atomic",
     "token_type": "bearer",
 }
 ```
 
-5. The POST return data includes the access and refresh token, as well as the IMS profile of the user. The sample app stores this data in server-side session cookies, marked as HTTP-only and requiring SSL, to prevent cross-site scripting (XSS) attacks. _Never_ save in `document.cookie`, or else the data will be vulnerable to hacks. Finally, the server app redirects back to the web app signin page, with a parameter instructing it to show the signed-in state.
+5. The POST return data includes the access token, **TODO: data about state**. The sample app stores this data in server-side session cookies, marked as HTTP-only and requiring SSL, to prevent cross-site scripting (XSS) attacks. _Never_ save in `document.cookie`, or else the data will be vulnerable to hacks. Finally, the server app redirects back to the web app signin page, with a parameter instructing it to show the signed-in state.
 
 
 ### Accessing a protected API
