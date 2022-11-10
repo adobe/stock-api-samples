@@ -10,12 +10,22 @@
  * governing permissions and limitations under the License.
  */
 
+// import CONSTANTS from "../background/constants.mjs";
+// Look at v3 documentation here: https://developer.chrome.com/docs/extensions/mv3/content_scripts/
+// Maybe there is a less kludgy way to import scripts?
+// this.K = CONSTANTS.CONSTANTS;
+
 class Content {
-  static CONSTANTS = {
+  /* static CONSTANTS = {
     EVENTS: {
+      // updates the gallery banner display
       GALLERY: {
         SET: 'gallery-set',
         RESET: 'gallery-reset',
+      },
+      // updates ui button overlay and banner
+      LIBRARY: {
+        REFRESH: 'refresh',
       },
     },
     TARGET: {
@@ -49,11 +59,11 @@ class Content {
     },
     UI: {
       THUMB: {
-        /* thumb icon parent */
+        // thumb icon parent
         TARGET_ID: 'div.thumb-frame',
-        /* icon grandparent */
+        // icon grandparent 
         TARGET_PARENT: 'div.search-result-cell',
-        /* data element with id */
+        // data element with id
         CONTENT: 'content-id',
         CLASS: 'gal',
         TITLE: 'Click to add to selected gallery',
@@ -74,7 +84,9 @@ class Content {
         },
       },
     },
-  }
+  } */
+
+  static K = CONSTANTS.CONSTANTS;
 
   // stores data in local storage
   static store(obj) {
@@ -119,7 +131,7 @@ const {
   notify,
   getToken,
   retrieve,
-  CONSTANTS: K,
+  K,
 } = Content;
 
 // session data stored while popup is open
@@ -178,6 +190,17 @@ chrome.runtime.onMessage.addListener((message) => {
       };
       document.dispatchEvent(new Event(status));
       break;
+    case K.EVENTS.LIBRARY.REFRESH:
+      /** TODO:
+       *  - Create new UI and new event dispatch on popup.html
+       *  - (Does anything need to be updated in background.js?)
+       *  - Event should contain gallery name
+       *  - On receipt of that event (here), dispatch new event like method above
+       *  - Below, add new jQuery listener for same event
+       *  - New handler should call methods insertThumbUi() and insertStatusUi()
+       *  - Update init code to call new handler
+       */
+    break;
     case 'PING': // sends ping back to background
       notify({ status: 'PONG' });
       break;

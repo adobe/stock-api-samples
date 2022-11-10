@@ -1,0 +1,117 @@
+  static CONSTANTS = {
+    EVENTS: {
+      // updates the gallery banner display
+      GALLERY: {
+        SET: 'gallery-set',
+        RESET: 'gallery-reset',
+      },
+      // updates ui button overlay and banner
+      LIBRARY: {
+        REFRESH: 'refresh',
+      },
+    },
+    // identifies listener target for message
+    TARGET: {
+      B: 'background',
+      C: 'content',
+      P: 'popup',
+    },
+    ACTION: {
+      GET: 'getGalleries',
+      NEW: 'createGallery',
+      DEL: 'deleteGallery',
+      DIR: 'getContent',
+      ADD: 'addContent',
+      REM: 'removeContent',
+      IMP: 'importContent',
+    },
+    RESPONSE: {
+      GET: 'getGalleriesResponse',
+      NEW: 'createGalleryResponse',
+      DEL: 'deleteGalleryResponse',
+      DIR: 'getContentResponse',
+      ADD: 'addContentResponse',
+      REM: 'removeContentResponse',
+      IMP: 'importContentResponse',
+      ERROR: 'Error',
+    },
+    // determines which environment extension is running by reading URL from config options
+    ENV: {
+      PROD: ['stock.adobe', 'contributor.stock.adobe'],
+      STAGE: ['primary.stock.stage.adobe', 'staging1.contributors.adobestock', 'sandbox.stock.stage.adobe'],
+      DEV: ['adobestock.dev', 'contributors.dev'],
+    },
+    // key values for local storage
+    DATA: {
+      /**
+       * The response models map generic HTTP requests to specific JSON objects from Stock
+       * BASE: JSON root element to be parsed
+       * COUNT: Name of JSON element containing number of elements
+       * MAP: Specific elements to retrieve from each JSON array item
+       * LIMIT: Max number of results to fetch with each request
+       */
+      getGalleriesResponse: {
+        BASE: 'galleries',
+        COUNT: 'nb_results',
+        MAP: [
+          'name',
+          'nb_media',
+          'id',
+        ],
+        LIMIT: 100, // api request limit
+      },
+      getContentResponse: {
+        BASE: 'files',
+        COUNT: 'nb_results',
+        MAP: [
+          'id',
+          'title',
+          'width',
+          'height',
+          'nb_downloads',
+          'thumbnail_url',
+          'href',
+        ],
+        LIMIT: 100, // api request limit
+      },
+      importContentResponse: {
+        BASE: 'files',
+        COUNT: 'nb_results',
+        MAP: ['id'],
+        LIMIT: 100, // api request limit
+      },
+      TOKEN: 'access_token',
+      GALLERY: 'selectedGallery',
+      URL: 'endpoint',
+      API_KEY: 'apiKey',
+      ENV: 'environment',
+      POPUP: 'helper',
+    },
+    UI: {
+      THUMB: {
+        /* thumb icon parent */
+        TARGET_ID: 'div.thumb-frame',
+        /* icon grandparent */
+        TARGET_PARENT: 'div.search-result-cell',
+        /* data element with id */
+        CONTENT: 'content-id',
+        CLASS: 'gal',
+        TITLE: 'Click to add to selected gallery',
+      },
+      MODAL_PARENT: {
+        ID: '.all-content-wrapper',
+      },
+      STATUS: {
+        TARGET_ID: 'div.lib-header-menu',
+        CLASS_DEFAULT: 'gallery-banner',
+        CLASS_ON: 'gallery-selected',
+        TEXT_ID: '#galStatusText',
+        MAIN: '#galStatus',
+        HTML: '<div id="galStatus" class="gallery-banner"><div class="subheading gallery-status" data-id="">Gallery:&nbsp;<span id="galStatusText">None</span></div></div>',
+        STATE: {
+          RESET: 0,
+          SUCCESS: 1,
+        },
+      },
+    },
+  }

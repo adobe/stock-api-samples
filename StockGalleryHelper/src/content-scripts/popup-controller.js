@@ -60,7 +60,10 @@ $(document).ready(() => {
     // set title ('error' or 'success')
     $alert.find(ALERT.TITLE).text(type.TITLE);
     $alert.find(ALERT.TEXT).text(msg);
-    $alert.alert();
+    // $alert.alert();
+    setTimeout(() => {
+      $alert.alert('close');
+    }, 8000);
     $(ALERT.DIV).append($alert);
   });
 
@@ -227,8 +230,45 @@ $(document).ready(() => {
     });
   };
 
+  // delete ALL gallery content handler
+  const onDeleteAllContent = () => {
+    // get current gallery ID
+    retrieve(K.DATA.GALLERY).then(({ id, name }) => {
+      if (!id) {
+        const warning = 'No gallery selected';
+        console.warn(warning);
+        showAlert(warning, K.UI.ALERT.WARNING);
+      } else {
+        // cast data as object
+        const row = { id, name };
+        // now call refresh
+        console.log(row);
+        // confirmation ui
+        const ui = {
+          msg: `Please confirm you want to delete ALL contents from gallery "<mark>${row.name}</mark>" with id <mark>${row.id}</mark>. This cannot be undone.`,
+          title: 'Are you sure?',
+          color: 'bg-warning',
+        };
+        onApprovalNeeded(ui, () => {
+          console.log('deleting gallery contents...');
+          // send request
+          notify({
+            action: K.ACTION.FIX,
+            data: {
+              id: row.id,
+              name: row.name,
+              count: row.nb_media,
+            },
+          });
+        });    
+      }
+    });      
+  };
+
   // handles refresh of gallery content
   // could be triggered by button or link click
+  // STK-63032: Also sends total count as workaround
+  // { name: "Fall Leaves", nb_media: 440, id: "1QdJ0awtLWxEwyrTC7OTmrEfyzsWt3Rk" }
   const refreshContents = ((row) => {
     emptyModal();
     toggleLoader(true);
@@ -237,6 +277,7 @@ $(document).ready(() => {
       data: {
         id: row.id,
         name: row.name,
+        count: row.nb_media, // STK-63032 inserted
       },
     });
   });
@@ -282,7 +323,6 @@ $(document).ready(() => {
   // refresh table size when tab is viewed
   $('a[data-toggle="tab"]').on('shown.bs.tab', () => {
     $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-    console.log('adjusted');
   });
 
   // gallery refresh button: only works if options are set
@@ -358,7 +398,7 @@ $(document).ready(() => {
         targets: [3],
         render: ((...[width, , row]) => {
           const height = row[3];
-          return `${width}&nbsp;&times;&nbsp;${height}`;
+          return `${width}&nbsp;x&nbsp;${height}`;
         }),
       },
       {
@@ -375,6 +415,7 @@ $(document).ready(() => {
         visible: false,
       },
     ],
+    // adds custom buttons to data tables
     buttons: [
       // deletes item
       {
@@ -394,6 +435,13 @@ $(document).ready(() => {
         extend: 'csv',
         text: 'Export CSV',
         filename: 'Adobe_Stock_Gallery_Content',
+      },
+      // deletes "all" items in gallery -- for syncing issues
+      {
+        text: 'Delete ALL content',
+        action: () => {
+          onDeleteAllContent();
+        },
       },
     ],
     language: {
@@ -494,8 +542,9 @@ $(document).ready(() => {
     if (message.target && message.target === K.TARGET.P) {
       const { data, status } = message;
       const {
-        GET, NEW, DEL, DIR, ADD, REM, ERROR, IMP,
+        GET, NEW, DEL, DIR, ADD, REM, FIX, ERROR, IMP,
       } = K.RESPONSE;
+      let msg;
       switch (status) {
         case GET:
           // convert data to table array
@@ -515,13 +564,13 @@ $(document).ready(() => {
           }, 1500);
           break;
         }
-        case DEL:
+        case DEL: // Gallery deleted
           $gt.rows().deselect();
           setStatus(K.UI.STATUS.STATE.RESET);
           // refresh gallery list
           checkOptionsNotSet(onGalleryRefresh);
           break;
-        case DIR: {
+        case DIR: { // Gallery directory/listing
           // reverse data order
           if (data.files) {
             data.files.reverse();
@@ -546,7 +595,6 @@ $(document).ready(() => {
         }
         case ADD: {
           const { files } = data;
-          let msg;
           if (files.length) {
             msg = `Image #${data.files[0].id} added.`;
           } else {
@@ -555,19 +603,29 @@ $(document).ready(() => {
           showAlert(msg, K.UI.ALERT.SUCCESS);
           break;
         }
-        case REM:
+        case REM: // Content removed
           $ct.rows().deselect();
           onContentRefreshClick();
           break;
-        case IMP:
+        case IMP: // Gallery imported
           // dismiss modal
           toggleLoader(false);
-          // eslint-disable-next-line no-case-declarations
-          let msg;
           if (data) {
             msg = `${data} images imported.`;
           } else {
             msg = 'Nothing imported.';
+          }
+          showAlert(msg, K.UI.ALERT.SUCCESS);
+          break;
+        case FIX: // removed all gallery content
+          // dismiss modal
+          toggleLoader(false);
+          // TODO: Process warning message if gallery already empty
+          // TODO: Return empty contents and update table--can this be done from Background?
+          if (data) {
+            msg = data;
+          } else {
+            msg = 'Failed.';
           }
           showAlert(msg, K.UI.ALERT.SUCCESS);
           break;

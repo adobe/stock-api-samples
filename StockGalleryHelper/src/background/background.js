@@ -37,6 +37,7 @@ class Background {
       ADD: 'addContent',
       REM: 'removeContent',
       IMP: 'importContent',
+      FIX: 'removeAllContent',
     },
     RESPONSE: {
       GET: 'getGalleriesResponse',
@@ -46,6 +47,7 @@ class Background {
       ADD: 'addContentResponse',
       REM: 'removeContentResponse',
       IMP: 'importContentResponse',
+      FIX: 'removeAllContentResponse',
       ERROR: 'Error',
     },
     // determines which environment extension is running by reading URL from config options
@@ -92,6 +94,12 @@ class Background {
         COUNT: 'nb_results',
         MAP: ['id'],
         LIMIT: 100, // api request limit
+      },
+      removeAllContentResponse: {
+        BASE: 'files',
+        COUNT: 'nb_results',
+        MAP: ['id'],
+        LIMIT: 100, // api request limit        
       },
       TOKEN: 'access_token',
       GALLERY: 'selectedGallery',
@@ -150,7 +158,7 @@ class Background {
         chrome.tabs.query({ active: true, currentWindow: true }, () => {
           chrome.tabs.sendMessage(activeTab.id, msg);
         });
-      } else console.error(`Target tab not defined yet for: ${JSON.stringify(msg)}`);
+      } else console.warn(`Target tab not defined yet for: ${JSON.stringify(msg)}`);
     });
   }
 
@@ -207,8 +215,8 @@ class Background {
       console.log(response);
       return response;
     } catch (e) {
-      // return either a JS error message or internal error string
-      return (e.message || e);
+      // throw original error message
+      throw (e.message || e);
     }
   }
 }
@@ -257,7 +265,7 @@ async function onGalleryReady(input) {
   }
 }
 
-// execute service workflows initiated by 'action' message
+// execute service workflows initiated by 'action' message, using message data as input
 function actionHandler(msg) {
   // store data object to send to service
   const input = msg.data;
@@ -309,6 +317,20 @@ function actionHandler(msg) {
     // import existing gallery contents
     case K.ACTION.IMP: {
       status = K.RESPONSE.IMP;
+      const { BASE, COUNT, LIMIT } = K.DATA[status];
+      pageModel = { BASE, COUNT, LIMIT };
+      break;
+    }
+    // removes all content from gallery to fix sync issues
+    case K.ACTION.FIX: {
+      status = K.RESPONSE.FIX;
+      // store current galleryId and name
+      store({
+        [K.DATA.GALLERY]: input,
+      });
+      // notify content script that gallery is set so UI can be updated
+      onGalleryReady(input);
+      // attach data object for pagination support
       const { BASE, COUNT, LIMIT } = K.DATA[status];
       pageModel = { BASE, COUNT, LIMIT };
       break;

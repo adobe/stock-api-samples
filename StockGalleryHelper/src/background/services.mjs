@@ -62,6 +62,9 @@ stock.http = {
       case 404:
         msg = 'There is a problem with the URL.';
         break;
+      case 403003:
+        msg = 'The API key is invalid.';
+        break;
       case 999:
         msg = 'Access token not found. Please reload Stock page and re-open extension.';
         break;
@@ -79,8 +82,10 @@ stock.http = {
     const { method } = req; // eslint: method = req.method
     let body = null;
     if (method === 'POST') {
-      body = JSON.stringify(req.body);
-      headers['Content-Type'] = 'application/json';
+      // body = JSON.stringify(req.body);
+      body = req.body;
+      // headers['Content-Type'] = 'application/json'; 
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
     const fetchRequest = new Request(url, {
       method, headers, body, credentials: 'omit', cache: 'no-store', redirect: 'error', mode: 'cors',
@@ -166,7 +171,6 @@ stock.getAllResults = async (args) => {
   let totalPages = 0;
   let data;
   let totalResults;
-  // TODO: Refactor to allow paginated call to search api
   do {
     // append pagination parameters to URL
     req.url = `${url}${pageParams(LIMIT, page)}`;
@@ -206,13 +210,16 @@ stock.getGalleries = async (env, token, ...args) => {
 stock.getContent = async (env, token, gallery, model) => {
   // const url = chrome.runtime.getURL('/background/other/getcontent_large1.json');
   const url = `${stock.CFG.URL[env]}/${gallery.id}`;
+  // STK-63032: Store count from gallery row and send back as total
+  const { count } = gallery; // STK-63032: Added
   // define pagination commands
   const pageParams = stock.CFG.PAGE_DEFAULT;
   const data = await stock.getAllResults({
     url, env, token, model, pageParams,
   });
   return {
-    [model.COUNT]: data.totalResults,
+    [model.COUNT]: data.totalResults, // STK-63032 line replaced
+    // [model.COUNT]: count, // STK-63032 -- overriding because count is wrong
     [model.BASE]: data.totalData,
   };
 };
@@ -222,7 +229,9 @@ stock.addContent = async (env, token, input) => {
   const { id, contentIds } = input;
   const url = `${stock.CFG.URL[env]}/${id}`;
   // convert contentIds to string
-  const body = { content_id: contentIds.toString() };
+  // const body = { content_id: `[${contentIds.toString()}]` };
+  // const params4 = new URLSearchParams({"foo": "1", "bar": "2"});
+  const body = new URLSearchParams({content_id: contentIds.toString()});
   const req = {
     url, token, env, method: 'POST', body,
   };
@@ -238,6 +247,46 @@ stock.removeContent = async (env, token, { id, contentId }) => {
   };
   const data = await stock.http.send(req);
   return data;
+};
+
+/**
+ * multi-step operation:
+ * - (1) uses getContent to list assets / exit if no assets exist
+ * - (2) uses remove Content to delete each row
+ * - (3) repeat steps 1 & 2 (TODO)
+ */
+stock.removeAllContent = async (env, token, gallery, model) => {
+  const { id } = gallery;
+  console.log(`Removing ALL content from ${id}`);
+  
+  // 1. getContent
+  const url = `${stock.CFG.URL[env]}/${id}`;
+  const pageParams = stock.CFG.PAGE_DEFAULT;
+  const assets = await stock.getAllResults({
+    url, env, token, model, pageParams,
+  });
+
+  // 2. removeContent on each row
+  if (assets.totalResults) {
+    const { totalData } = assets;
+    let removeCount = 0;
+    while (totalData.length > 0) {
+      const row = totalData.shift();
+      const contentId = row.id;
+      console.log(`deleting ${id}/${contentId} (${totalData.length} remaining)`);
+      const result = await stock.removeContent(env, token, { id, contentId});
+      removeCount = removeCount + 1;
+    }
+    console.log(`${removeCount} asset(s) removed successfully`);
+
+    // 3. Run again in case there are more results
+    setTimeout(async() => {
+      console.log('Running again in 2 seconds...');
+      await stock.removeAllContent(env, token, gallery, model);
+    }, 2000);
+  }
+  console.log('No assets found');
+  return 'No assets to remove!';
 };
 
 /**

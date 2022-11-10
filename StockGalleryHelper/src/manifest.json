@@ -17,6 +17,7 @@
     "background": {
       "scripts": [
         "background/hot-reload.js",
+        "background/constants.mjs",
         "background/background.js",
         "background/services.mjs"
       ],
@@ -45,6 +46,7 @@
         "css": [ "styles/content.css"],
         "js": [
           "content-scripts/jquery-3.4.1.slim.min.js",
+          "background/constants.mjs",
           "content-scripts/content.js"
         ]
       }

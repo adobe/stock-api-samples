@@ -1,0 +1,162 @@
+const K = {
+  EVENTS: {
+    GALLERY: {
+      SET: 'gallery-set',
+      RESET: 'gallery-reset',
+    },
+  },
+  STOCK_URL: {
+    PROD: 'https://stock.adobe.com/',
+    DEV: 'https://sandbox.stock.stage.adobe.com/',
+    STAGE: 'https://sandbox.stock.stage.adobe.com/',
+  },
+  // identifies listener target for message
+  TARGET: {
+    B: 'background',
+    C: 'content',
+    P: 'popup',
+  },
+  UI: {
+    STATUS: {
+      BANNER: {
+        ID: '#statusBanner',
+        STYLE_RESET: 'bg-dark',
+        STYLE_SUCCESS: 'bg-success',
+      },
+      BG: {
+        ID: '#statusBox',
+        STYLE_RESET: 'border border-light',
+        STYLE_SUCCESS: 'bg-light',
+      },
+      ID: {
+        ID: '#statusGalleryName[data-id]',
+        DEFAULT: 'none',
+      },
+      NAME: {
+        ID: '#statusGalleryName',
+        DEFAULT: 'None',
+        STYLE_RESET: 'text-light',
+        STYLE_SUCCESS: 'text-dark',
+      },
+      COUNT: {
+        ID: '#statusGalleryCount',
+        DEFAULT: 0,
+        STYLE_SUCCESS: 'badge-success',
+        STYLE_RESET: 'badge-warning',
+      },
+      STATE: {
+        RESET: 'RESET',
+        SUCCESS: 'SUCCESS',
+      },
+    },
+    GALLERY: {
+      TAB: '#manage-tab',
+      TABLE: {
+        ID: '#galleryTable',
+      },
+      FORM: {
+        ID: '#newGalleryForm',
+      },
+      REFRESH: '#get-galleries',
+      // sets listener delegate and target because link won't exist when turned on
+      LINK: {
+        // delegated target
+        DEL: '#manage',
+        // link target
+        TARG: '#galleryTable tbody > tr > td a[rel="next"]',
+      },
+    },
+    CONTENTS: {
+      TAB: '#view-tab',
+      TABLE: {
+        ID: '#contentTable',
+      },
+      REFRESH: '#get-content',
+      FORM: {
+        ID: '#importGalleryForm',
+        // gallery ID to be imported
+        SOURCE: '#importGalleryId',
+        // selected gallery id and name
+        TARGET: '#selectedGalleryId',
+        TARGET_NAME: '#selectedGalleryName',
+      },
+    },
+    MODAL: {
+      ID: '#modal',
+      BODY: '#modal .modal-body',
+      TITLE: '#modalLabel',
+      COLOR: '#modal .modal-header',
+    },
+    CONSENT: {
+      ID: '#consentForm',
+      MSG: 'label',
+    },
+    WAIT: '#loader',
+    ALERT: {
+      ID: '#alert',
+      DIV: '#alertDiv',
+      TITLE: '.alert-heading',
+      TEXT: 'p',
+      ERROR: {
+        STYLE: 'alert-danger',
+        TITLE: 'Error',
+      },
+      SUCCESS: {
+        STYLE: 'alert-primary',
+        TITLE: 'Success!',
+      },
+      WARNING: {
+        STYLE: 'alert-warning',
+        TITLE: 'Hmm...',
+      },
+    },
+  },
+  DATA: {
+    getGalleriesResponse: {
+      BASE: 'galleries',
+      MAP: [
+        'name',
+        'nb_media',
+        'id',
+      ],
+    },
+    getContentResponse: {
+      BASE: 'files',
+      MAP: [
+        'id',
+        'title',
+        'width',
+        'height',
+        'nb_downloads',
+        'thumbnail_url',
+        'href',
+      ],
+    },
+    TOKEN: 'access_token',
+    GALLERY: 'selectedGallery',
+    ENV: 'environment',
+    POPUP: 'helper',
+    COUNT: 'nb_results',
+    API_KEY: 'apiKey',
+    URL: 'endpoint',
+  },
+  ACTION: {
+    GET: 'getGalleries',
+    NEW: 'createGallery',
+    DEL: 'deleteGallery',
+    DIR: 'getContent',
+    ADD: 'addContent',
+    REM: 'removeContent',
+    IMP: 'importContent',
+  },
+  RESPONSE: {
+    GET: 'getGalleriesResponse',
+    NEW: 'createGalleryResponse',
+    DEL: 'deleteGalleryResponse',
+    DIR: 'getContentResponse',
+    ADD: 'addContentResponse',
+    REM: 'removeContentResponse',
+    IMP: 'importContentResponse',
+    ERROR: 'Error',
+  },
+};

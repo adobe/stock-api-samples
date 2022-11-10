@@ -1,29 +1,21 @@
-/*
- * Copyright 2019 Adobe. All rights reserved.
- * This file is licensed to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. You may obtain a copy
- * of the License at http://www.apache.org/licenses/LICENSE-2.0
-
- * Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
-
-const Popup = (() => {
-  // add static constants
-  const K = {
+class CONSTANTS {
+  static CONSTANTS = {
     EVENTS: {
+      // updates the gallery banner display
       GALLERY: {
         SET: 'gallery-set',
         RESET: 'gallery-reset',
+      },
+      // updates ui button overlay and banner
+      LIBRARY: {
+        REFRESH: 'refresh',
       },
     },
     STOCK_URL: {
       PROD: 'https://stock.adobe.com/',
       DEV: 'https://sandbox.stock.stage.adobe.com/',
       STAGE: 'https://sandbox.stock.stage.adobe.com/',
-    },
+      },
     // identifies listener target for message
     TARGET: {
       B: 'background',
@@ -32,6 +24,16 @@ const Popup = (() => {
     },
     UI: {
       STATUS: {
+        TARGET_ID: 'div.lib-header-menu',
+        CLASS_DEFAULT: 'gallery-banner',
+        CLASS_ON: 'gallery-selected',
+        TEXT_ID: '#galStatusText',
+        MAIN: '#galStatus',
+        HTML: '<div id="galStatus" class="gallery-banner"><div class="subheading gallery-status" data-id="">Gallery:&nbsp;<span id="galStatusText">None</span></div></div>',
+        STATE: {
+          RESET: 0,
+          SUCCESS: 1,
+        },        
         BANNER: {
           ID: '#statusBanner',
           STYLE_RESET: 'bg-dark',
@@ -124,35 +126,19 @@ const Popup = (() => {
           TITLE: 'Hmm...',
         },
       },
-    },
-    DATA: {
-      getGalleriesResponse: {
-        BASE: 'galleries',
-        MAP: [
-          'name',
-          'nb_media',
-          'id',
-        ],
+      THUMB: {
+        /* thumb icon parent */
+        TARGET_ID: 'div.thumb-frame',
+        /* icon grandparent */
+        TARGET_PARENT: 'div.search-result-cell',
+        /* data element with id */
+        CONTENT: 'content-id',
+        CLASS: 'gal',
+        TITLE: 'Click to add to selected gallery',
       },
-      getContentResponse: {
-        BASE: 'files',
-        MAP: [
-          'id',
-          'title',
-          'width',
-          'height',
-          'nb_downloads',
-          'thumbnail_url',
-          'href',
-        ],
-      },
-      TOKEN: 'access_token',
-      GALLERY: 'selectedGallery',
-      ENV: 'environment',
-      POPUP: 'helper',
-      COUNT: 'nb_results',
-      API_KEY: 'apiKey',
-      URL: 'endpoint',
+      MODAL_PARENT: {
+        ID: '.all-content-wrapper',
+      },      
     },
     ACTION: {
       GET: 'getGalleries',
@@ -162,7 +148,6 @@ const Popup = (() => {
       ADD: 'addContent',
       REM: 'removeContent',
       IMP: 'importContent',
-      FIX: 'removeAllContent',
     },
     RESPONSE: {
       GET: 'getGalleriesResponse',
@@ -172,68 +157,62 @@ const Popup = (() => {
       ADD: 'addContentResponse',
       REM: 'removeContentResponse',
       IMP: 'importContentResponse',
-      FIX: 'removeAllContentResponse',
       ERROR: 'Error',
     },
-  };
-
-  /*
-    transforms data from object to array using the mapping constants above
-   */
-  const prepData = ((data, method) => {
-    const d = K.DATA[method];
-    return data[d.BASE].map((obj) => d.MAP.map((key) => obj[key]));
-  });
-
-  const notify = (message) => {
-    // sends message to background
-    chrome.runtime.sendMessage(message);
-  };
-
-  // gets data from local storage; returns async function
-  const retrieve = (key) => new Promise((resolve, reject) => {
-    chrome.storage.sync.get(key, (item) => {
-      if (chrome.runtime.lastError) {
-        const msg = chrome.runtime.lastError.message;
-        console.error(msg);
-        reject(msg);
-      } else {
-        resolve(item[key]);
-      }
-    });
-  });
-
-  // gets tab id of active front tab and sends it to background
-  const getActiveTabs = () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      // activeTab.windowId = parent window
-      notify({
-        status: 'POPUP_READY',
-        activeTab: tabs[0],
-      });
-    });
-  };
-
-  // utility to cast array to object
-  // https://stackoverflow.com/a/50985915
-  const arrayToObj = (keyArr, valueArr) => keyArr.reduce((obj, key, index) => ({
-    ...obj,
-    [key]: valueArr[index],
-  }), {});
-
-  const init = () => {
-    // now get front tab id and notify background
-    getActiveTabs();
-  };
-
-  return {
-    K,
-    init,
-    notify,
-    retrieve,
-    prepData,
-    arrayToObj,
-  };
-})();
-
-export default Popup;
+    // determines which environment extension is running by reading URL from config options
+    ENV: {
+      PROD: ['stock.adobe', 'contributor.stock.adobe'],
+      STAGE: ['primary.stock.stage.adobe', 'staging1.contributors.adobestock', 'sandbox.stock.stage.adobe'],
+      DEV: ['adobestock.dev', 'contributors.dev'],
+    },
+    // key values for local storage
+    DATA: {
+      /**
+       * The response models map generic HTTP requests to specific JSON objects from Stock
+       * BASE: JSON root element to be parsed
+       * COUNT: Name of JSON element containing number of elements
+       * MAP: Specific elements to retrieve from each JSON array item
+       * LIMIT: Max number of results to fetch with each request
+       */
+      getGalleriesResponse: {
+        BASE: 'galleries',
+        COUNT: 'nb_results',
+        MAP: [
+          'name',
+          'nb_media',
+          'id',
+        ],
+        LIMIT: 100, // api request limit
+      },
+      getContentResponse: {
+        BASE: 'files',
+        COUNT: 'nb_results',
+        MAP: [
+          'id',
+          'title',
+          'width',
+          'height',
+          'nb_downloads',
+          'thumbnail_url',
+          'href',
+        ],
+        LIMIT: 100, // api request limit
+      },
+      importContentResponse: {
+        BASE: 'files',
+        COUNT: 'nb_results',
+        MAP: ['id'],
+        LIMIT: 100, // api request limit
+      },
+      TOKEN: 'access_token',
+      GALLERY: 'selectedGallery',
+      URL: 'endpoint',
+      API_KEY: 'apiKey',
+      ENV: 'environment',
+      POPUP: 'helper',
+    COUNT: 'nb_results',
+    API_KEY: 'apiKey',
+    URL: 'endpoint',
+    },
+  }
+}
