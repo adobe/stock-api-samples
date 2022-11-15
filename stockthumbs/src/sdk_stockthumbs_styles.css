@@ -1,0 +1,158 @@
+/* searchbar styles */
+
+/* main container */
+.astock-searchbar {
+    width: 98%;
+    margin-right: 1%;
+    position: relative;
+    display: block;
+    /* hide until loaded */
+    visibility: hidden;
+    opacity: 0;
+    z-index: 100;
+}
+
+/* controls visibility transition of searchbar */
+.astock-searchbar-fadein {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0s linear 0ms, opacity 300ms;
+}
+
+/* header element */
+/* New header styles 5-21 */
+.astock-searchbar .astock-searchbar-header {
+    width: 99%;
+    position: relative;
+    padding: 25px 0 5px 0;
+    margin-bottom: 5px;
+}
+
+/* logo size and placement */
+.astock-searchbar .astock-searchbar-header img {
+    max-width: 250px;
+    min-width: 120px;
+    width: 50%;
+    display: block;
+    margin: 0 0 -8px 0;
+}
+
+.astock-searchbar .astock-searchbar-header p {
+  border-top: 1px solid rgba(0,0,0,0.2);
+  padding-top: 20px;
+  width: 95%;
+  margin: 10px 0;
+  font: 100%/1.1 Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.astock-searchbar .astock-searchbar-link {
+  color: #1fa1e6;
+  text-decoration: none;
+}
+
+/* scrolling wrapper */
+.astock-searchbar .astock-searchbar-wrap {
+    width: 99%;
+    height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* thumbnail container */
+.astock-searchbar .astock-searchbar-body {
+    width: 100%;
+}
+
+/* image thumbnails */
+.astock-searchbar .astock-searchbar-item {
+    display: inline-block;
+    /* controls how many thumbnails will appear */
+    width: 47%;
+    max-width: 220px;
+    margin: 0 3px;
+}
+
+/* adjust or remove this media query to fit your site */
+@media only screen and (min-width: 1200px) {
+  .astock-searchbar .astock-searchbar-item {
+      width: 32%;
+  }
+}
+
+.astock-searchbar .astock-searchbar-item a {
+  position: relative;
+}
+
+.astock-searchbar .astock-searchbar-item a img,
+.astock-searchbar .astock-searchbar-item a video {
+    width: 100%;
+}
+
+.astock-searchbar .astock-searchbar-item a video {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.astock-searchbar-item-icon {
+  position: absolute;
+  bottom: 4px;
+  left: 3px;
+}
+
+.astock-searchbar-item-icon svg {
+  -webkit-box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.3);
+  -moz-box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.3);
+  box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.3);
+}
+
+.unfloat:after {
+    content: ".";
+    visibility: hidden;
+    display: block;
+    height: 0;
+    clear: both;
+}
+
+/* custom scrollbar for Webkit browsers */
+.astock-searchbar-wrap::-webkit-scrollbar {
+    width: 10px;
+    background-color: #F5F5F5;
+}
+
+.astock-searchbar-wrap::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+}
+
+.astock-searchbar-wrap::-webkit-scrollbar-thumb {
+    background-color: #555555;
+    border: 1px solid #999999;
+}
+
+/* item size for small widths */
+.astock-searchbar .astock-searchbar-item.item-small {
+  width: 100%
+}
+
+/* used for tooltips */
+.astock-searchbar-item a {
+  text-decoration:none;
+  display: block;
+} 
+.astock-searchbar-tip {
+    z-index:10;
+    display:none; 
+    padding:10px 10px;
+    margin-top:-20px; 
+    margin-left:-20px;
+    width:200px; 
+    line-height:16px;
+    position:absolute; 
+    color:#111;
+    border:1px solid #222; 
+    background:#f5f5f5;
+    font: 75%/1.1 sans-serif;
+    border-radius:4px;
+    box-shadow: 2px 2px 4px #222;
+}

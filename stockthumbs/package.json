@@ -1,6 +1,6 @@
 {
   "name": "astock-stockthumbs",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Reference integration of Adobe Stock search results",
   "main": "src/sdk_stockthumbs.js",
   "scripts": {
@@ -13,12 +13,12 @@
     "url": "https://github.com/chfabbro/astock-stockthumbs.git"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.4.5",
-    "@babel/preset-env": "^7.4.5",
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.20.2",
+    "@babel/preset-env": "^7.20.2",
     "babel-plugin-transform-remove-console": "^6.9.4"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.2.5"
+    "@babel/polyfill": "^7.12.1"
   }
 }
