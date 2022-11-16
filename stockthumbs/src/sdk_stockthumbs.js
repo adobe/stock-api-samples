@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 (() => {
   let stockThumbsConfig = {};
   let stockThumbsMain = null;
@@ -8,11 +9,11 @@
       stockThumbsConfig = config;
       // rules for app to use alternate options
       stockThumbsConfig.custom = config.custom;
-      const loadScripts = jqLoaded(stockThumbsConfig);
       window.addEventListener('jQueryLoaded', (e) => {
         // prevents a double event
+        const loadScripts = jqLoaded(stockThumbsConfig);
         e.target.removeEventListener('jQueryLoaded', loadScripts, false);
-      }, false);
+      }, { once: true, passive: true });
       window.addEventListener('StockThumbsReady', () => {
         console.log('StockThumbs ready');
         const stm = stockThumbsMain();
@@ -31,7 +32,8 @@
         StockThumbs.config = stockThumbsConfig;
         // now call main init method returned below
         stm.init();
-      }, false);
+        // modern browser method to remove event handler when done
+      }, { once: true, passive: true });
     },
   };
   stockThumbsMain = () => {
@@ -40,8 +42,8 @@
     // utility functions for getting tracking urls and paths
     const utils = {
       includePath: window.StockThumbs.PATH,
-      // clk.tradedoubler.com/click?p(ProgramID)&a(AdvertiserID)&g(AdID)url(TARGET_URL)
-      getTrackingUrl: (url, cfg) => `//clk.tradedoubler.com/click?p(${cfg.programID})a(${cfg.advertiserID})g(${cfg.adID})url(${encodeURIComponent(url)})`,
+      // adobe.prf.hn/click/camref:(CamRef)/pubref:(PubRef)/destination:(URL)
+      getTrackingUrl: (url, cfg) => `//adobe.prf.hn/click/${cfg.camRef}:/pubref:${encodeURIComponent(cfg.pubRef)}/destination:${encodeURIComponent(url)}`,
       getHost: () => {
         let host = document.location.hostname;
         // check if a custom hostname is set
@@ -72,7 +74,7 @@
       if (stc.ctaLink === 'video') return cta.video;
       return cta.fmf;
     };
-    const sbHeader = `<div class="astock-searchbar-header"><a href="${utils.stockHomeUrl}" target="_blank"><img src="${utils.includePath}/adobe_stock_logo-400.png"></a>${getCtaText()}</div>`;
+    const sbHeader = `<div class="astock-searchbar-header"><a href="${utils.stockHomeUrl}" target="_blank"><img src="${utils.includePath}/stock_2020_dark_400.png"></a>${getCtaText()}</div>`;
 
     function parseFilters(filters) {
       const searchFilters = {};
@@ -88,7 +90,7 @@
           if (key === 'SIMILAR_URL') {
             if (value !== '' && value !== undefined) {
               const firstImg = $jq(`${value} img`)[0] || $jq(`${value}`)[0];
-              const getSrcSet = srcset => ((srcset) ? srcset.split(', ')[0].split(' ')[0] : undefined);
+              const getSrcSet = (srcset) => ((srcset) ? srcset.split(', ')[0].split(' ')[0] : undefined);
               const url = $jq(firstImg).attr('src') || getSrcSet($jq(firstImg).attr('srcset'));
               if (url !== '' && url !== undefined) {
                 searchFilters[stkParams[key]] = url;
@@ -164,156 +166,171 @@
         $tempDiv.attr('data-id', dataId);
       // neither exists, throw exception
       } else {
-        throw (new Error('Stock SearchBar error: Container does not exist. Set "parentId" to a valid selector.'));
+        throw (new Error('StockThumbs error: Container does not exist. Set "parentId" to a valid selector.'));
       }
       return $tempDiv;
     }
 
     // creates thumbs and inserts -- input is json array
-    function updateUiThumbs(files) {
-      const wrapClass = 'astock-searchbar-wrap';
-      const bodyClass = 'astock-searchbar-body';
-      let itemClass = 'astock-searchbar-item';
-      const tipClass = 'astock-searchbar-tip';
-      const iconClass = 'astock-searchbar-item-icon';
-      // get reference to result columns object
-      const columns = AdobeStock.RESULT_COLUMNS;
-      // get reference to jQuery
-      const { $jq } = window.StockThumbs;
-      const $sb = $getContDiv(stc.parentId);
-      // wrap thumbnails in container to allow scrolling
-      const $wrapDiv = $jq(document.createElement('div'));
-      $wrapDiv.addClass(wrapClass);
-      const $thumbsDiv = $jq(document.createElement('div'));
-      $thumbsDiv.addClass(bodyClass);
-      // if body width is less than 150px, apply small item size
-      if ($sb.width() <= 150) {
-        itemClass = `${itemClass} item-small`;
-      }
-      // svg video icon
-      const videoSvg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 19 12" style="enable-background:new 0 0 19 12; width:19px; height:10px; fill:white;" xml:space="preserve"><g><path d="M17.8,0.8L13,3V0.8C13,0.4,12.6,0,12.2,0H0.8C0.4,0,0,0.4,0,0.8v10.4C0,11.6,0.4,12,0.8,12h11.4c0.4,0,0.8-0.4,0.8-0.8V 9l4.8,2.2c0.5,0.4,1.2,0,1.2-0.7v-9C19,0.9,18.3,0.5,17.8,0.8z"></path></g></svg>';
-      // populate with images using html returned in json
-      files.forEach((asset) => {
-        // get url to details page on Stock and wrap inside affiliate tracking url
-        const url = utils.getTrackingUrl(asset[columns.DETAILS_URL], stc);
-        // create div wrapper
-        const div = document.createElement('div');
-        div.className = itemClass;
-        // create anchor with link to details
-        const link = document.createElement('a');
-        link.href = url;
-        link.target = '_blank';
-        let thumb;
-        // construct a different thumb element depending on asset type
-        if (stc.videoSupport && asset[columns.MEDIA_TYPE_ID] === 4) {
-          // create video and source tag
-          const video = document.createElement('video');
-          const source = document.createElement('source');
-          Object.assign(video, {
-            preload: 'none',
-            poster: asset[columns.THUMBNAIL_URL],
-            loop: 'loop',
-          });
-          // for some reason, cannot assign these properties
-          video.setAttribute('muted', 'muted');
-          video.setAttribute('onmouseover', 'this.play()');
-          video.setAttribute('onmouseout', 'this.pause()');
-          Object.assign(source, {
-            src: asset[columns.VIDEO_SMALL_PREVIEW_URL],
-            type: asset[columns.VIDEO_SMALL_PREVIEW_CONTENT_TYPE],
-          });
-          // add video source and set thumb as video
-          video.appendChild(source);
-          // add play icon
-          const iconDiv = document.createElement('div');
-          iconDiv.className = iconClass;
-          const svg = document.createRange().createContextualFragment(videoSvg);
-          iconDiv.appendChild(svg);
-          div.appendChild(iconDiv);
-          link.appendChild(video);
-          // get html tag
-          const tag = asset[columns.THUMBNAIL_HTML_TAG];
-          // convert html string into dom element
-          thumb = document.createRange().createContextualFragment(tag);
-        } else {
-          // get html tag
-          const tag = asset[columns.THUMBNAIL_HTML_TAG];
-          // convert html string into dom element
-          thumb = document.createRange().createContextualFragment(tag);
+    function updateUiThumbs(...files) {
+      if (files.length > 0) {
+        const wrapClass = 'astock-searchbar-wrap';
+        const bodyClass = 'astock-searchbar-body';
+        let itemClass = 'astock-searchbar-item';
+        const tipClass = 'astock-searchbar-tip';
+        const iconClass = 'astock-searchbar-item-icon';
+        // get reference to result columns object
+        const columns = AdobeStock.RESULT_COLUMNS;
+        // get reference to jQuery
+        const { $jq } = window.StockThumbs;
+        const $sb = $getContDiv(stc.parentId);
+        // wrap thumbnails in container to allow scrolling
+        const $wrapDiv = $jq(document.createElement('div'));
+        $wrapDiv.addClass(wrapClass);
+        const $thumbsDiv = $jq(document.createElement('div'));
+        $thumbsDiv.addClass(bodyClass);
+        // if body width is less than 150px, apply small item size
+        if ($sb.width() <= 150) {
+          itemClass = `${itemClass} item-small`;
         }
-        // if captions are enabled
-        if (stc.tooltips) {
-          // create tool tip from image title
-          const tip = document.createElement('div');
-          tip.className = tipClass;
-          // get title text from document-fragment
-          const tipText = thumb.querySelector('img').title;
-          if (tipText !== '' && tipText !== undefined) {
-            tip.textContent = tipText;
-            thumb.querySelector('img').removeAttribute('title');
-            link.appendChild(tip);
-            // create hover behavior for tip
-            const $tip = $jq(tip);
-            const $link = $jq(link);
-            const showTip = (el) => {
-              el.stopPropagation();
-              el.preventDefault();
-              const $img = $jq(el.currentTarget);
-              const $off1 = $img.offset();
-              const $off2 = $sb.offset();
-              const newPos = {
-                top: ($off1.top - $off2.top) + $img.height(),
-                left: ($off1.left - $off2.left) + $img.width(),
-              };
-              $tip.css({
-                top: newPos.top,
-                left: newPos.left,
-              });
-              // console.log('final pos', newPos);
-              $tip.show();
-              // change parent to main div
-              $sb.append($tip);
-            };
-            const hideTip = (el) => {
-              $tip.css($jq(el.currentTarget).offset());
-              $tip.hide();
-              // reset parent to link
-              $link.append($tip);
-            };
-            // $jq(thumb.querySelector('img')).hover(showTip);
-            $jq(link).hover(showTip, hideTip);
-          }
-        }
-        // wrap link around image/video and add to document
-        link.appendChild(thumb);
-        div.insertBefore(link, div.lastChild);
-        $thumbsDiv.append(div);
-      });
-      $wrapDiv.append($thumbsDiv);
-      $sb.append($wrapDiv);
-      // init Masonry
-      $thumbsDiv.masonry({
-        itemSelector: `.${itemClass}`,
-      });
-      // listen for images loaded event
-      $thumbsDiv.imagesLoaded()
-        .progress(() => {
-          $thumbsDiv.masonry('layout');
-        })
-        .done(() => {
-          console.log('all images successfully loaded');
-          // show search bar
-          $sb.addClass('astock-searchbar-fadein');
-          // make sure it is visible in case class is missing
-          window.setTimeout(() => {
-            $sb.css({
-              visibility: 'visible',
-              opacity: 1,
+        // svg video icon
+        const videoSvg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 19 12" style="enable-background:new 0 0 19 12; width:19px; height:10px; fill:white;" xml:space="preserve"><g><path d="M17.8,0.8L13,3V0.8C13,0.4,12.6,0,12.2,0H0.8C0.4,0,0,0.4,0,0.8v10.4C0,11.6,0.4,12,0.8,12h11.4c0.4,0,0.8-0.4,0.8-0.8V 9l4.8,2.2c0.5,0.4,1.2,0,1.2-0.7v-9C19,0.9,18.3,0.5,17.8,0.8z"></path></g></svg>';
+        // populate with images using html returned in json
+        files.forEach((asset) => {
+          // get url to details page on Stock and wrap inside affiliate tracking url
+          const url = utils.getTrackingUrl(asset[columns.DETAILS_URL], stc);
+          // create div wrapper
+          const div = document.createElement('div');
+          div.className = itemClass;
+          // create anchor with link to details
+          const link = document.createElement('a');
+          link.href = url;
+          link.target = '_blank';
+          let thumb;
+          const videoHandler = (e) => {
+            const { target, type } = e;
+            if (type === 'mouseover') {
+              target.muted = true;
+              target.play();
+            } else if (type === 'mouseout') {
+              target.pause();
+            }
+          };
+          // construct a different thumb element depending on asset type
+          if (stc.videoSupport && asset[columns.MEDIA_TYPE_ID] === 4) {
+            // create video and source tag
+            const video = document.createElement('video');
+            const source = document.createElement('source');
+            Object.assign(video, {
+              preload: 'none',
+              poster: asset[columns.THUMBNAIL_URL],
+              loop: 'loop',
             });
-            // call Masonry layout one final time for Firefox!
-            $thumbsDiv.masonry('layout');
-          }, 1000);
+            // for some reason, cannot assign these properties
+            video.setAttribute('muted', 'muted');
+            // video.setAttribute('onmouseover', 'videoHandler()');
+            // video.setAttribute('onmouseout', 'videoHandler');
+            video.addEventListener('mouseover', videoHandler, false);
+            video.addEventListener('mouseout', videoHandler, false);
+            Object.assign(source, {
+              src: asset[columns.VIDEO_SMALL_PREVIEW_URL],
+              type: asset[columns.VIDEO_SMALL_PREVIEW_CONTENT_TYPE],
+            });
+            // add video source and set thumb as video
+            video.appendChild(source);
+            // add play icon
+            const iconDiv = document.createElement('div');
+            iconDiv.className = iconClass;
+            const svg = document.createRange().createContextualFragment(videoSvg);
+            iconDiv.appendChild(svg);
+            div.appendChild(iconDiv);
+            link.appendChild(video);
+            // get html tag
+            const tag = asset[columns.THUMBNAIL_HTML_TAG];
+            // convert html string into dom element
+            thumb = document.createRange().createContextualFragment(tag);
+          } else {
+            // get html tag
+            const tag = asset[columns.THUMBNAIL_HTML_TAG];
+            // convert html string into dom element
+            thumb = document.createRange().createContextualFragment(tag);
+          }
+          // if captions are enabled
+          if (stc.tooltips) {
+            // create tool tip from image title
+            const tip = document.createElement('div');
+            tip.className = tipClass;
+            // get title text from document-fragment
+            const tipText = thumb.querySelector('img').title;
+            if (tipText !== '' && tipText !== undefined) {
+              tip.textContent = tipText;
+              thumb.querySelector('img').removeAttribute('title');
+              link.appendChild(tip);
+              // create hover behavior for tip
+              const $tip = $jq(tip);
+              const $link = $jq(link);
+              const showTip = (el) => {
+                el.stopPropagation();
+                el.preventDefault();
+                const $img = $jq(el.currentTarget);
+                const $off1 = $img.offset();
+                const $off2 = $sb.offset();
+                const newPos = {
+                  top: ($off1.top - $off2.top) + $img.height(),
+                  left: ($off1.left - $off2.left) + $img.width(),
+                };
+                $tip.css({
+                  top: newPos.top,
+                  left: newPos.left,
+                });
+                // console.log('final pos', newPos);
+                $tip.show();
+                // change parent to main div
+                $sb.append($tip);
+              };
+              const hideTip = (el) => {
+                $tip.css($jq(el.currentTarget).offset());
+                $tip.hide();
+                // reset parent to link
+                $link.append($tip);
+              };
+              // $jq(thumb.querySelector('img')).hover(showTip);
+              $jq(link).hover(showTip, hideTip);
+            }
+          }
+          // wrap link around image/video and add to document
+          link.appendChild(thumb);
+          div.insertBefore(link, div.lastChild);
+          $thumbsDiv.append(div);
         });
+        $wrapDiv.append($thumbsDiv);
+        $sb.append($wrapDiv);
+        // init Masonry
+        $thumbsDiv.masonry({
+          itemSelector: `.${itemClass}`,
+        });
+        // listen for images loaded event
+        $thumbsDiv.imagesLoaded()
+          .progress(() => {
+            $thumbsDiv.masonry('layout');
+          })
+          .done(() => {
+            console.log('all images successfully loaded');
+            // show search bar
+            $sb.addClass('astock-searchbar-fadein');
+            // make sure it is visible in case class is missing
+            window.setTimeout(() => {
+              $sb.css({
+                visibility: 'visible',
+                opacity: 1,
+              });
+              // call Masonry layout one final time for Firefox!
+              $thumbsDiv.masonry('layout');
+            }, 1000);
+          });
+      } else {
+        console.warn('No images to render.');
+      }
     }
 
     // runs search using sdk and returns results
@@ -374,11 +391,15 @@
           console.log('no results from Stock');
         }
         return files;
+      }).catch((err) => {
+        console.log(err);
+        return false;
       });
     }
     // expose methods and objects outside Main object
     return {
       init: async () => {
+        // get reference to loaded jQuery
         const { $jq } = window.StockThumbs;
         // extract search options and run search
         const result = await doSearch(parseFilters(stc.filters));
@@ -391,12 +412,16 @@
           // call custom code main entry point
           stc.custom.exec.call(this, result);
         } else {
-          // create search results
-          const $stockThumbs = $getContDiv(stc.parentId);
-          // create stock header
-          const $header = $jq(sbHeader);
-          $stockThumbs.append($header);
-          updateUiThumbs.apply(this, result);
+          try {
+            // create search results
+            const $stockThumbs = $getContDiv(stc.parentId);
+            // create stock header
+            const $header = $jq(sbHeader);
+            $stockThumbs.append($header);
+            updateUiThumbs.apply(this, result);
+          } catch (error) {
+            console.warn('Unable to initialize StockThumbs.');
+          }
         }
       },
       // expose search filters for troubleshooting
@@ -446,6 +471,7 @@
   const notify = (eventName) => {
     const event = new Event(eventName);
     // Dispatch the event.
+    console.log(`Dispatching event ${eventName}`);
     window.dispatchEvent(event);
   };
 
@@ -453,53 +479,57 @@
   jqLoaded = (stc) => {
     // get current path of script
     const includePath = window.StockThumbs.PATH;
-    jQuery(document).ready((jQuery) => {
-      const SS = window.StockThumbs;
-      SS.$jq = jQuery.noConflict();
-      const { $jq } = SS;
-      const reqs = {
-        keywordx: 'keywordx.min.js',
-        imagesloaded: 'imagesloaded.pkgd.min.js',
-        adobestocklib: 'adobestocklib.min.js',
-        masonry: 'masonry.pkgd.min.js',
-      };
+    const SS = window.StockThumbs;
+    SS.$jq = jQuery.noConflict();
+    const { $jq } = SS;
+    const reqs = {
+      keywordx: 'keywordx.min.js',
+      imagesloaded: 'imagesloaded.pkgd.min.js',
+      adobestocklib: 'adobestocklib.min.js',
+      masonry: 'masonry.pkgd.min.js',
+    };
       // remove/add custom libraries
-      if (stc.custom && (stc.custom.include || stc.custom.exclude)) {
-        const { exclude } = stc.custom;
-        const { include } = stc.custom;
-        if (exclude) {
-          exclude.forEach((name) => {
+    if (stc.custom && (stc.custom.include || stc.custom.exclude)) {
+      const { exclude } = stc.custom;
+      const { include } = stc.custom;
+      if (exclude) {
+        exclude.forEach((name) => {
             // eslint-disable-next-line no-prototype-builtins
-            if (reqs.hasOwnProperty(name)) {
-              delete reqs[name];
-            }
-          });
-        }
-        if (include) {
-          include.forEach((name) => {
-            reqs[name] = `${name}.js`;
-          });
-        }
-        console.log('new includes', reqs);
+          if (reqs.hasOwnProperty(name)) {
+            delete reqs[name];
+          }
+        });
       }
-      // load other libraries using a promise
-      // https://stackoverflow.com/a/11803418/9421005
-      $jq.getMultiScripts = (reqsObj, path) => {
-        const reqArr = $jq.map(reqsObj, script => $jq.getScript(`${path}${script}`));
-        reqArr.push($jq.Deferred((deferred) => {
-          $jq(deferred.resolve);
-        }));
-        return $jq.when.apply($, reqArr);
-      };
-      $jq.getMultiScripts(reqs, includePath).done(() => {
-        console.log('jQuery %s and all libraries loaded.', $jq().jquery);
+      if (include) {
+        include.forEach((name) => {
+          reqs[name] = `${name}.js`;
+        });
+      }
+      console.log('new includes', reqs);
+    }
+    // loads other libraries using a promise
+    // https://www.geeksforgeeks.org/loading-multiple-scripts-dynamically-in-sequence-using-javascript/
+    const multiLoad = (info) => new Promise(((resolve, reject) => {
+      const scriptTag = document.createElement('script');
+      scriptTag.src = info;
+      scriptTag.async = false;
+      scriptTag.onload = () => resolve(info);
+      scriptTag.onerror = () => reject(info);
+      document.body.appendChild(scriptTag);
+    }));
+    const scriptArr = Object.values(reqs).map((script) => `${includePath}${script}`);
+    const promiseData = [];
+    scriptArr.forEach((info) => {
+      promiseData.push(multiLoad(info));
+    });
+    Promise.all(promiseData).then(() => {
+      console.log(`jQuery ${$jq().jquery} and all libraries loaded.`);
         // dispatch event that searchbar is ready to load
-        SS.keywordx = window.keywordx;
-        SS.Masonry = window.Masonry;
-        notify('StockThumbsReady');
-      }).fail((jqXHR, textStatus, errorThrown) => {
-        console.error(errorThrown);
-      });
+      SS.keywordx = window.keywordx;
+      SS.Masonry = window.Masonry;
+      notify('StockThumbsReady');
+    }).catch((err) => {
+      console.log(`${err} failed to load!`);
     });
   };
 
@@ -529,17 +559,28 @@
       return segmentsA.length - segmentsB.length;
     };
 
-    // check for jQuery and load conditionally if version 1.9 or higher
-    if ((typeof window.jQuery === 'undefined' && !window.jQuery) || (cmpVersions('1.9', window.jQuery().jquery) >= 0)) {
-      const jQ = document.createElement('script');
-      jQ.type = 'text/javascript';
-      jQ.onload = jQ.onreadystatechange;
-      jQ.onload = jqLoaded;
-      jQ.src = `${window.StockThumbs.PATH}/jquery.min.js`;
-      document.body.appendChild(jQ);
-      notify('jQueryLoaded');
-    } else {
-      notify('jQueryLoaded');
-    }
+    let isJQCalled = false;
+    const checkJQ = () => {
+      // check for jQuery and load conditionally if version 1.9 or higher
+      let timerId;
+      if ((typeof window.jQuery === 'undefined' && !window.jQuery) || (cmpVersions('1.9', window.jQuery().jquery) >= 0)) {
+        if (!isJQCalled) {
+          const jQ = document.createElement('script');
+          jQ.type = 'text/javascript';
+          jQ.onload = jQ.onreadystatechange;
+          // jQ.onload = jqLoaded;
+          jQ.src = `${window.StockThumbs.PATH}/jquery.min.js`;
+          document.body.appendChild(jQ);
+          isJQCalled = true;
+        }
+        timerId = setTimeout(() => {
+          checkJQ();
+        }, 50);
+      } else {
+        if (timerId) { clearTimeout(timerId); }
+        notify('jQueryLoaded');
+      }
+    };
+    checkJQ();
   });
 })();

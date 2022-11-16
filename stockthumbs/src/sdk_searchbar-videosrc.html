@@ -89,17 +89,17 @@
   </div>
   <div id="sidebar" class="unfloat">
 
-  <!-- Begin Stock SearchBar -->
-  <!-- SearchBar container -->
+  <!-- Begin StockThumbs -->
+  <!-- StockThumbs container -->
   <div id="astock-searchbar" class="astock-searchbar unfloat"></div>
-  <!-- SearchBar styles -->
-  <link rel="stylesheet" type="text/css" href="./sdk_searchbar_styles.css">
-  <!-- SearchBar script include -->
-  <script type="text/javascript" src="./sdk_searchbar.js"></script>
+  <!-- StockThumbs styles -->
+  <link rel="stylesheet" type="text/css" href="./sdk_stockthumbs_styles.css">
+  <!-- StockThumbs script include -->
+  <script type="text/javascript" src="./sdk_stockthumbs.js"></script>
   <script type="text/javascript">
-    StockSearchBar.config = {
-      // container where SearchBar will appear
-      contId: '#astock-searchbar',
+    StockThumbs.config = {
+      // container where StockThumbs will appear
+      parentId: '#astock-searchbar',
       // search filters
       filters: {
         // first param is CSS selector of element containing keywords
@@ -114,7 +114,7 @@
       // DO NOT USE THIS ONE!
       apiKey: 'b3f036780e4148b6a3f845bbe4c6de45',
       // Name you choose for app (whatever you want)
-      appName: 'Stock-Searchbar/1.2',
+      appName: 'StockThumbs/1.2.5',
       // Your affiliate data--Change these values to receive credit!
       programID: 264355,
       advertiserID: 3033058,
@@ -128,9 +128,9 @@
       // 'video': Promotes credit packs (for video)
       ctaLink: 'video',
     };
-    StockSearchBar.init(StockSearchBar.config);
+    StockThumbs.init(StockThumbs.config);
   </script>
-  <!-- End Stock SearchBar -->
+  <!-- End StockThumbs -->
 
   </div>
   <div id="footer">
