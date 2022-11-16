@@ -4,7 +4,7 @@
   "description": "Reference integration of Adobe Stock search results",
   "main": "src/sdk_stockthumbs.js",
   "scripts": {
-    "build": "babel src/sdk_stockthumbs.js --out-file dist/sdk_stockthumbs.min.js --source-maps && babel src --out-dir dist --copy-files && babel src/custom-stockthumbs.js --out-file dist/custom-stockthumbs.min.js --source-maps && rm dist/*src.html && rm dist/*stockthumbs.js && rm -r dist/archive && git archive --format=zip --prefix=stockthumbs/ HEAD:dist/ -o stockthumbs-$npm_package_version.zip"
+    "build": "babel src/sdk_stockthumbs.js --out-file dist/sdk_stockthumbs.min.js --source-maps && babel src --out-dir dist --copy-files && rm dist/*src.html && rm dist/*stockthumbs.js && cross-var tar -cvzf stockthumbs-$npm_package_version.zip dist/"
   },
   "author": "cfsmith@adobe.com",
   "license": "Apache-2.0",
@@ -15,10 +15,10 @@
   "devDependencies": {
     "@babel/cli": "^7.19.3",
     "@babel/core": "^7.20.2",
+    "@babel/polyfill": "^7.12.1",
     "@babel/preset-env": "^7.20.2",
-    "babel-plugin-transform-remove-console": "^6.9.4"
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "cross-var": "^1.1.0"
   },
-  "dependencies": {
-    "@babel/polyfill": "^7.12.1"
-  }
+  "dependencies": {}
 }

@@ -207,6 +207,15 @@
           link.href = url;
           link.target = '_blank';
           let thumb;
+          const videoHandler = (e) => {
+            const { target, type } = e;
+            if (type === 'mouseover') {
+              target.muted = true;
+              target.play();
+            } else if (type === 'mouseout') {
+              target.pause();
+            }
+          };
           // construct a different thumb element depending on asset type
           if (stc.videoSupport && asset[columns.MEDIA_TYPE_ID] === 4) {
             // create video and source tag
@@ -219,8 +228,10 @@
             });
             // for some reason, cannot assign these properties
             video.setAttribute('muted', 'muted');
-            video.setAttribute('onmouseover', 'this.play()');
-            video.setAttribute('onmouseout', 'this.pause()');
+            // video.setAttribute('onmouseover', 'videoHandler()');
+            // video.setAttribute('onmouseout', 'videoHandler');
+            video.addEventListener('mouseover', videoHandler, false);
+            video.addEventListener('mouseout', videoHandler, false);
             Object.assign(source, {
               src: asset[columns.VIDEO_SMALL_PREVIEW_URL],
               type: asset[columns.VIDEO_SMALL_PREVIEW_CONTENT_TYPE],
