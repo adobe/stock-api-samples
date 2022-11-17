@@ -38,10 +38,10 @@ All files are pre-built in the dist folder, otherwise you can run `npm install` 
 
 To use on your site:
 1. Either:
-    - Download and extract [stockthumbs-1.1.zip](stockthumbs-1.1.zip) to your web server. It should extract as a folder named "stockthumbs."
+    - Download and extract stockthumbs-1.x.x.zip (lates version) to your web server. It should extract as a folder with the same name as the archive.
     - Copy the `dist` folder to your server and optionally rename to "stockthumbs". This is not required, but matches the embed code example, below.
 2. Include the embed code in your page, preferably at the bottom before the closing `</body>` tag. 
-3. Identify where you want the thumbnails to appear, and note the selector name. Change the `contId` to match the CSS selector name and the gallery will build itself inside that container. By default, the gallery will appear in a DIV with an id of `astock-searchbar`.
+3. Identify where you want the thumbnails to appear, and note the selector name. Change the `parentId` to match the CSS selector name and the gallery will build itself inside that container. By default, the gallery will appear in a DIV with an id of `astock-searchbar`.
 4. To test, your page must be hosted on a web server or in a localhost. Open a web inspector, and if any files are not loading, make sure the paths to the CSS and JS files are correct. The example code expects that if your page resides at the root of your site, then the files are located in a folder named `stockthumbs` also located at the root. If it is working properly, you should see some search results based on the title of your page.
 6. Configure the options as described below under [Configure](#configure).
 
@@ -72,8 +72,7 @@ To use on your site:
         LIMIT: 16,
       },
       // Stock api key registered on console.adobe.io
-      // DO NOT USE THIS ONE!
-      apiKey: 'b3f036780e4148b6a3f845bbe4c6de45',
+      apiKey: 'yourkeyname',
       // Name you choose for app (whatever you want)
       appName: 'StockThumbs/1.2',
       // Your affiliate data--Change these values to receive credit!
@@ -120,7 +119,7 @@ The configuration object has a few required properties:
 
     You can choose to place this DIV wherever you want the thumbnails to appear, or you can leave it out and choose a different container. If you use a different container and do not include the main `astock-searchbar` class, then a DIV element will be created with this class name.
 
-    When identifying the `contId` you may use any valid CSS selector, but it's recommend you use an `id` selector to ensure that the StockThumbs only appears once on your page. If you are unfamiliar with selectors, see [this article](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Simple_selectors). 
+    When identifying the `parentId` you may use any valid CSS selector, but it's recommend you use an `id` selector to ensure that the StockThumbs only appears once on your page. If you are unfamiliar with selectors, see [this article](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Simple_selectors). 
 
 + `filters`: This is an object containing multiple search parameters, all of which are optional. See [Filters object](#filters-object), below.
 + `apiKey`: The Adobe Stock API key for your integration that you created at the [Adobe I/O Developer Console](https://console.adobe.io/integrations). For more information on this simple process, see [Register your application](https://www.adobe.io/apis/creativecloud/stock/docs/getting-started/01-getting-started_master/02-register-app.html) in the Adobe Stock Getting Started guide.
@@ -128,9 +127,14 @@ The configuration object has a few required properties:
 
 #### Affiliate program information
 
-The next three parameters are required if you want to receive credit for referring traffic to Adobe Stock. Each successful Stock subscription attributed to you will pay a bounty! For more information, see the [Adobe Affiliate Program](https://www.adobe.com/affiliates.html). It only takes a few minutes to sign up. 
+The next three parameters are required if you want to receive credit for referring traffic to Adobe Stock. Each successful Stock subscription attributed to you will pay a bounty! For more information, see the [Adobe Affiliate Program](https://www.adobe.com/affiliates.html). 
 
-There is one more property, which is optional (omitting it will result in a default `false` value):
+Once accepted into the program and you join the Adobe campaign, go the [Tracking](https://console.partnerize.com/v2/creative/tracking) page to get your `camref` value. Select the Adobe campaign and it should reveal a tracking link in this format: https://adobe.prf.hn/click/camref:{camRef}. The camref value is unique to the campaign, and is required to generate tracking events. You can optionally add a `pubref` value as well, which is a unique publisher reference that you can assign to a tracking link that will track from click to sale and is visible in your reporting. This allows you separate Stock Thumbs clicks from other clicks.
+
+```javascript
+      camRef: '1101lryZ2',
+      pubRef: 'stockthumbs',
+```
 
 #### Tooltips option (beta)
 + `tooltips`: This is somewhat experimental setting which uses JavaScript and CSS to create tooltip rollovers over each image that are customizable in CSS. Each tip is created dynamically based on the `title` attribute of the Stock image item.
@@ -211,7 +215,7 @@ You can either edit the styles in the uncompressed `sdk_stockthumbs_styles.css` 
 
 Some classes are added programmatically when the StockThumbs is created. These include:
 
-+ `.astock-searchbar`: Main class for StockThumbs container. If this class does not exist on the container div (`contId`), then a new DIV child will be created under the `contId` parent, and this class will be applied there.
++ `.astock-searchbar`: Main class for StockThumbs container. If this class does not exist on the container div (`parentId`), then a new DIV child will be created under the `parentId` parent, and this class will be applied there.
 + `.astock-searchbar-header`: Contains the Adobe Stock logo and header.
 + `.astock-searchbar-wrap`: A wrapper around the thumbnails which allows scrolling.
 + `.astock-searchbar-body`: Container for the thumbnails.
