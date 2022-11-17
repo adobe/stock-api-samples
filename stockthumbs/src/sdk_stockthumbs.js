@@ -43,7 +43,7 @@
     const utils = {
       includePath: window.StockThumbs.PATH,
       // adobe.prf.hn/click/camref:(CamRef)/pubref:(PubRef)/destination:(URL)
-      getTrackingUrl: (url, cfg) => `//adobe.prf.hn/click/${cfg.camRef}:/pubref:${encodeURIComponent(cfg.pubRef)}/destination:${encodeURIComponent(url)}`,
+      getTrackingUrl: (url, cfg) => `//adobe.prf.hn/click/camref:${cfg.camRef}/pubref:${encodeURIComponent(cfg.pubRef)}/destination:${encodeURIComponent(url)}`,
       getHost: () => {
         let host = document.location.hostname;
         // check if a custom hostname is set
@@ -228,8 +228,6 @@
             });
             // for some reason, cannot assign these properties
             video.setAttribute('muted', 'muted');
-            // video.setAttribute('onmouseover', 'videoHandler()');
-            // video.setAttribute('onmouseout', 'videoHandler');
             video.addEventListener('mouseover', videoHandler, false);
             video.addEventListener('mouseout', videoHandler, false);
             Object.assign(source, {
