@@ -18,7 +18,7 @@
     "require": {
         "php": "~7.1",
         "astock/stock-api-libphp": "dev-master",
-        "firebase/php-jwt": "^4.0",
+        "firebase/php-jwt": "^6.0",
         "guzzlehttp/guzzle": "~6.0"
     },
     "autoload": {
